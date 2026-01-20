@@ -3,33 +3,42 @@
 @source "@openai/apps-sdk-ui";
 
 :root {
-	--font-sans: var(--font-space-grotesk);
-	--font-mono: var(--font-plex-mono);
+  --font-sans: var(--font-space-grotesk);
+  --font-mono: var(--font-plex-mono);
 }
 
 @keyframes fade-up {
-	0% {
-		opacity: 0;
-		transform: translateY(20px);
-	}
-	100% {
-		opacity: 1;
-		transform: translateY(0);
-	}
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
 }
 
 .motion-fade-up {
-	animation: fade-up 0.9s ease both;
+  animation: fade-up 0.9s ease both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.motion-fade-up {
-		animation: none;
-	}
+  .motion-fade-up {
+    animation: none;
+  }
 }
 
 @media print {
-	.no-print {
-		display: none !important;
-	}
+  .no-print {
+    display: none !important;
+  }
 }

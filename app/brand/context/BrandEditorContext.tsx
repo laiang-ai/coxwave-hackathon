@@ -20,9 +20,23 @@ export interface InspectorState {
 	currentValue: any;
 }
 
+// Chat message
+export interface ChatMessage {
+	id: string;
+	role: "user" | "assistant" | "system";
+	content: string;
+	timestamp: Date;
+	metadata?: {
+		updates?: Array<{ path: string; value: any; reason?: string }>;
+	};
+}
+
 // AI assistant state
 export interface AIAssistantState {
 	isOpen: boolean;
+	messages: ChatMessage[];
+	isStreaming: boolean;
+	currentStreamContent: string;
 	targetPath?: string;
 	prompt?: string;
 }
@@ -38,6 +52,10 @@ export interface BrandEditorState extends UseBrandDataReturn {
 	aiAssistant: AIAssistantState;
 	openAI: (context?: { targetPath?: string; prompt?: string }) => void;
 	closeAI: () => void;
+	addMessage: (message: Omit<ChatMessage, "id" | "timestamp">) => void;
+	clearMessages: () => void;
+	setStreaming: (isStreaming: boolean) => void;
+	appendStreamContent: (content: string) => void;
 
 	// Section Customization
 	customization: SectionCustomization;
@@ -97,6 +115,9 @@ export function BrandEditorProvider({
 	// AI assistant state
 	const [aiAssistant, setAIAssistant] = useState<AIAssistantState>({
 		isOpen: false,
+		messages: [],
+		isStreaming: false,
+		currentStreamContent: "",
 	});
 
 	// Section customization
@@ -132,18 +153,60 @@ export function BrandEditorProvider({
 	// AI assistant actions
 	const openAI = useCallback(
 		(context?: { targetPath?: string; prompt?: string }) => {
-			setAIAssistant({
+			setAIAssistant((prev) => ({
+				...prev,
 				isOpen: true,
 				...context,
-			});
+			}));
 		},
 		[],
 	);
 
 	const closeAI = useCallback(() => {
-		setAIAssistant({
+		setAIAssistant((prev) => ({
+			...prev,
 			isOpen: false,
-		});
+		}));
+	}, []);
+
+	// Message management
+	const addMessage = useCallback(
+		(message: Omit<ChatMessage, "id" | "timestamp">) => {
+			const newMessage: ChatMessage = {
+				...message,
+				id: crypto.randomUUID(),
+				timestamp: new Date(),
+			};
+			setAIAssistant((prev) => ({
+				...prev,
+				messages: [...prev.messages, newMessage],
+				currentStreamContent: "",
+			}));
+		},
+		[],
+	);
+
+	const clearMessages = useCallback(() => {
+		setAIAssistant((prev) => ({
+			...prev,
+			messages: [],
+			currentStreamContent: "",
+		}));
+	}, []);
+
+	const setStreaming = useCallback((isStreaming: boolean) => {
+		setAIAssistant((prev) => ({
+			...prev,
+			isStreaming,
+			currentStreamContent: isStreaming ? prev.currentStreamContent : "",
+		}));
+	}, []);
+
+	const appendStreamContent = useCallback((content: string) => {
+		setAIAssistant((prev) => ({
+			...prev,
+			currentStreamContent: prev.currentStreamContent + content,
+		}));
 	}, []);
 
 	// Section customization actions
@@ -231,6 +294,10 @@ export function BrandEditorProvider({
 		aiAssistant,
 		openAI,
 		closeAI,
+		addMessage,
+		clearMessages,
+		setStreaming,
+		appendStreamContent,
 		customization,
 		setCustomization,
 		toggleSectionVisibility,
