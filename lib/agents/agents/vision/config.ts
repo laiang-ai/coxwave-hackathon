@@ -8,7 +8,7 @@ export const visionConfig: AgentOptions = {
 이미지를 분석하고 시각적 질문에 답변합니다. 보이는 것을 설명하고 사용자의 요청과 연결하세요.
 
 중요: 모든 응답은 반드시 한국어로 작성하세요.`,
-	model: "gpt-5.2",
+	model: "gpt-4.1-mini",
 	modelSettings: {
 		temperature: 0.2,
 	},

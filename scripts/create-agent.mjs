@@ -23,7 +23,7 @@ if (fs.existsSync(agentDir)) {
 
 fs.mkdirSync(agentDir, { recursive: true });
 
-const config = `import { Agent } from "@openai/agents";\nimport type { AgentConfiguration } from "@openai/agents";\nimport { ${varName}Tools } from "./tools";\n\nexport const ${varName}Config: AgentConfiguration = {\n  name: "${displayName}",\n  instructions: "TODO: describe this agent's behavior.",\n  model: "gpt-5.2",\n  modelSettings: {\n    temperature: 0.4,\n  },\n  tools: ${varName}Tools,\n};\n\nexport const create${pascalName}Agent = (\n  overrides: Partial<AgentConfiguration> = {},\n) => new Agent({ ...${varName}Config, ...overrides });\n`;
+const config = `import { Agent } from "@openai/agents";\nimport type { AgentConfiguration } from "@openai/agents";\nimport { ${varName}Tools } from "./tools";\n\nexport const ${varName}Config: AgentConfiguration = {\n  name: "${displayName}",\n  instructions: "TODO: describe this agent's behavior.",\n  model: "gpt-4.1-mini",\n  modelSettings: {\n    temperature: 0.4,\n  },\n  tools: ${varName}Tools,\n};\n\nexport const create${pascalName}Agent = (\n  overrides: Partial<AgentConfiguration> = {},\n) => new Agent({ ...${varName}Config, ...overrides });\n`;
 
 const tools = `import { sharedTools } from "@/lib/agents/tools";\n\nexport const ${varName}Tools = [...sharedTools];\n`;
 const index = `export { create${pascalName}Agent, ${varName}Config } from "./config";\nexport { ${varName}Tools } from "./tools";\n`;

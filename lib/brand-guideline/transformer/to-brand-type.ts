@@ -591,6 +591,122 @@ function transformTypography(
 }
 
 // ============================================
+// Brand Overview Transform
+// ============================================
+function transformBrandOverview(
+	identity: IdentityModel,
+): BrandType["brandOverview"] {
+	const values = identity.philosophy.values.map((v) => v.name);
+
+	const personalityTraits = identity.personality.traits.map((trait) => {
+		const matchingValue = identity.philosophy.values.find(
+			(v) => v.name.toLowerCase() === trait.toLowerCase(),
+		);
+		return {
+			name: trait,
+			description:
+				matchingValue?.description || `Brand characteristic: ${trait}`,
+		};
+	});
+
+	return {
+		mission: identity.philosophy.mission,
+		vision: identity.philosophy.vision,
+		values,
+		personality: {
+			traits: personalityTraits,
+			archetype: identity.personality.archetypes.primary,
+		},
+	};
+}
+
+// ============================================
+// Tone of Voice Transform
+// ============================================
+function transformToneOfVoice(
+	identity: IdentityModel,
+	guideline: GuidelineModel,
+): BrandType["toneOfVoice"] {
+	const traits: NonNullable<BrandType["toneOfVoice"]>["traits"] = [];
+
+	// Formality trait
+	const formalityMap: Record<string, number> = {
+		formal: 90,
+		professional: 70,
+		casual: 40,
+		friendly: 20,
+	};
+	traits.push({
+		name: "Formality",
+		spectrum: ["Casual", "Formal"] as [string, string],
+		value: formalityMap[identity.voiceFoundation.formalityLevel] || 50,
+		description: `Communication style: ${identity.voiceFoundation.formalityLevel}`,
+	});
+
+	// Energy trait
+	const energyMap: Record<string, number> = {
+		calm: 20,
+		balanced: 50,
+		dynamic: 70,
+		energetic: 90,
+	};
+	traits.push({
+		name: "Energy",
+		spectrum: ["Calm", "Energetic"] as [string, string],
+		value: energyMap[identity.voiceFoundation.energyLevel] || 50,
+		description: `Brand energy: ${identity.voiceFoundation.energyLevel}`,
+	});
+
+	// Principles as traits
+	guideline.tone.principles.forEach((principle, index) => {
+		traits.push({
+			name: principle.name,
+			spectrum: ["Low", "High"] as [string, string],
+			value: 70 + index * 5,
+			description: principle.description,
+		});
+	});
+
+	const examples = guideline.tone.examples.map((ex) => ({
+		scenario: ex.context,
+		good: ex.do[0]?.text || "",
+		bad: ex.dont[0]?.text,
+	}));
+
+	const guidelines = [
+		...guideline.tone.writingStyle.rules,
+		`Preferred: ${guideline.tone.vocabulary.preferred.slice(0, 5).join(", ")}`,
+		`Avoid: ${guideline.tone.vocabulary.avoided.slice(0, 5).join(", ")}`,
+	];
+
+	return { traits, examples, guidelines };
+}
+
+// ============================================
+// Visual Elements Transform
+// ============================================
+function transformVisualElements(
+	guideline: GuidelineModel,
+): BrandType["visualElements"] {
+	return {
+		icons: guideline.visual.iconography
+			? {
+					style: guideline.visual.iconography.style,
+					guidelines: guideline.visual.iconography.guidelines,
+				}
+			: undefined,
+		patterns: {
+			usage: `Grid: ${guideline.visual.layout.gridSystem}, Spacing: ${guideline.visual.layout.spacing.unit}`,
+			examples: guideline.visual.layout.spacing.scale,
+		},
+		illustrations: {
+			style: guideline.visual.imagery.style,
+			examples: guideline.visual.imagery.characteristics,
+		},
+	};
+}
+
+// ============================================
 // Main Transform Function
 // ============================================
 export function toBrandType(
@@ -610,5 +726,8 @@ export function toBrandType(
 		logo: transformLogo(guideline, logoAsset),
 		color: transformColor(guideline),
 		typography: transformTypography(guideline),
+		brandOverview: transformBrandOverview(identity),
+		toneOfVoice: transformToneOfVoice(identity, guideline),
+		visualElements: transformVisualElements(guideline),
 	};
 }

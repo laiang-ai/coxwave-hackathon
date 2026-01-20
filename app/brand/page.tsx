@@ -1,5 +1,6 @@
 "use client";
 
+<<<<<<< Updated upstream
 import { useEffect, useState } from "react";
 import BrandGuideClient from "./BrandGuideClient";
 import type { BrandType } from "./types";
@@ -57,9 +58,46 @@ export default function BrandGuidePage() {
 					<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-neutral-300 border-t-neutral-900" />
 					<p className="text-neutral-600">브랜드 데이터 로딩 중...</p>
 				</div>
+=======
+import { useState, useEffect } from "react";
+import BrandGuideClient from "./BrandGuideClient";
+import { mockCocaColaBrandType } from "./mockCocaColaBrandType";
+import type { BrandType } from "./types";
+
+export default function BrandGuidePage() {
+	const [brandData, setBrandData] = useState<BrandType | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
+
+	useEffect(() => {
+		const storedData = localStorage.getItem("generatedBrandType");
+		if (storedData) {
+			try {
+				const parsed = JSON.parse(storedData);
+				setBrandData(parsed);
+				console.log("[BrandPage] Loaded brand data from localStorage");
+			} catch (e) {
+				console.error("[BrandPage] Failed to parse localStorage data:", e);
+				setBrandData(mockCocaColaBrandType);
+			}
+		} else {
+			console.log("[BrandPage] No stored data, using mock");
+			setBrandData(mockCocaColaBrandType);
+		}
+		setIsLoading(false);
+	}, []);
+
+	if (isLoading) {
+		return (
+			<div className="flex items-center justify-center min-h-screen">
+				<div>Loading...</div>
+>>>>>>> Stashed changes
 			</div>
 		);
 	}
 
+<<<<<<< Updated upstream
 	return <BrandGuideClient data={data} logoImages={logoImages} />;
+=======
+	return <BrandGuideClient data={brandData || mockCocaColaBrandType} />;
+>>>>>>> Stashed changes
 }

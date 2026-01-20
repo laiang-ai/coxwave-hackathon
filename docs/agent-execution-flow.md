@@ -35,18 +35,18 @@
                                                              ▼
                                               ┌──────────────────────────────┐
                                               │      OpenAI GPT Models       │
-                                              │      (gpt-5.2, gpt-4.1-mini) │
+                                              │      (gpt-4.1-mini, gpt-4.1-mini) │
                                               └──────────────────────────────┘
 ```
 
 ### 핵심 컴포넌트
 
-| 컴포넌트 | 파일 경로 | 역할 |
-|----------|-----------|------|
+| 컴포넌트              | 파일 경로                                      | 역할                                       |
+| --------------------- | ---------------------------------------------- | ------------------------------------------ |
 | Workflow Orchestrator | `lib/brand-guideline/orchestrator/workflow.ts` | 전체 워크플로우 제어 및 에이전트 실행 조율 |
-| Agent Registry | `lib/agents/registry.ts` | 에이전트 팩토리 함수 관리 및 캐싱 |
-| Agent Configs | `lib/agents/agents/*/config.ts` | 각 에이전트의 설정 (프롬프트, 모델, 도구) |
-| Schemas | `lib/brand-guideline/schemas/` | 입출력 데이터 타입 정의 (Zod) |
+| Agent Registry        | `lib/agents/registry.ts`                       | 에이전트 팩토리 함수 관리 및 캐싱          |
+| Agent Configs         | `lib/agents/agents/*/config.ts`                | 각 에이전트의 설정 (프롬프트, 모델, 도구)  |
+| Schemas               | `lib/brand-guideline/schemas/`                 | 입출력 데이터 타입 정의 (Zod)              |
 
 ---
 
@@ -238,7 +238,7 @@ export async function* runBrandWorkflow(
 
 각 에이전트는 동일한 패턴으로 실행됩니다.
 
-```
+````
 ┌────────────────────────────────────────────────────────────────────────┐
 │                    Single Agent Execution Flow                          │
 └────────────────────────────────────────────────────────────────────────┘
@@ -308,7 +308,7 @@ export async function* runBrandWorkflow(
   │  2. 없으면 전체 텍스트 JSON 파싱   │
   │  3. 실패 시 에러 throw             │
   └─────────────────────────────────────┘
-```
+````
 
 ---
 
@@ -408,41 +408,41 @@ export async function* runBrandWorkflow(
 
 ### Workflow & Orchestration
 
-| 파일 | 설명 |
-|------|------|
-| `lib/brand-guideline/orchestrator/workflow.ts` | 메인 워크플로우 정의 |
-| `lib/brand-guideline/orchestrator/index.ts` | 오케스트레이터 진입점 |
+| 파일                                           | 설명                  |
+| ---------------------------------------------- | --------------------- |
+| `lib/brand-guideline/orchestrator/workflow.ts` | 메인 워크플로우 정의  |
+| `lib/brand-guideline/orchestrator/index.ts`    | 오케스트레이터 진입점 |
 
 ### Agent Definitions
 
-| 에이전트 | Config 파일 | 역할 |
-|----------|-------------|------|
-| Vision | `lib/agents/agents/vision/config.ts` | 로고 이미지 분석 |
-| Analysis | `lib/agents/agents/analysis/config.ts` | 시장/타겟 분석 |
-| Identity | `lib/agents/agents/identity/config.ts` | 브랜드 아이덴티티 생성 |
-| Logo Guide | `lib/agents/agents/logo-guide/config.ts` | 로고 가이드라인 |
-| Color | `lib/agents/agents/color/config.ts` | 컬러 시스템 설계 |
-| Typography | `lib/agents/agents/typography/config.ts` | 타이포그래피 시스템 |
-| Tone | `lib/agents/agents/tone/config.ts` | 톤 오브 보이스 |
-| Visual | `lib/agents/agents/visual/config.ts` | 비주얼 요소 가이드 |
-| Design Standards | `lib/agents/agents/design-standards/config.ts` | 디자인 스탠더드 |
-| Copywriting | `lib/agents/agents/copywriting/config.ts` | 카피라이팅 |
-| Applications | `lib/agents/agents/applications/config.ts` | 적용 사례 설계 |
+| 에이전트         | Config 파일                                    | 역할                   |
+| ---------------- | ---------------------------------------------- | ---------------------- |
+| Vision           | `lib/agents/agents/vision/config.ts`           | 로고 이미지 분석       |
+| Analysis         | `lib/agents/agents/analysis/config.ts`         | 시장/타겟 분석         |
+| Identity         | `lib/agents/agents/identity/config.ts`         | 브랜드 아이덴티티 생성 |
+| Logo Guide       | `lib/agents/agents/logo-guide/config.ts`       | 로고 가이드라인        |
+| Color            | `lib/agents/agents/color/config.ts`            | 컬러 시스템 설계       |
+| Typography       | `lib/agents/agents/typography/config.ts`       | 타이포그래피 시스템    |
+| Tone             | `lib/agents/agents/tone/config.ts`             | 톤 오브 보이스         |
+| Visual           | `lib/agents/agents/visual/config.ts`           | 비주얼 요소 가이드     |
+| Design Standards | `lib/agents/agents/design-standards/config.ts` | 디자인 스탠더드        |
+| Copywriting      | `lib/agents/agents/copywriting/config.ts`      | 카피라이팅             |
+| Applications     | `lib/agents/agents/applications/config.ts`     | 적용 사례 설계         |
 
 ### Schemas
 
-| 파일 | 설명 |
-|------|------|
-| `lib/brand-guideline/schemas/user-input.ts` | 사용자 입력 스키마 |
-| `lib/brand-guideline/schemas/intermediate.ts` | 중간 데이터 모델 |
-| `lib/brand-guideline/schemas/output.ts` | 최종 출력 스키마 |
+| 파일                                          | 설명               |
+| --------------------------------------------- | ------------------ |
+| `lib/brand-guideline/schemas/user-input.ts`   | 사용자 입력 스키마 |
+| `lib/brand-guideline/schemas/intermediate.ts` | 중간 데이터 모델   |
+| `lib/brand-guideline/schemas/output.ts`       | 최종 출력 스키마   |
 
 ### Infrastructure
 
-| 파일 | 설명 |
-|------|------|
-| `lib/agents/registry.ts` | 에이전트 등록 및 캐싱 |
-| `lib/agents/graph.ts` | 채팅 에이전트 그래프 (handoff 포함) |
+| 파일                     | 설명                                |
+| ------------------------ | ----------------------------------- |
+| `lib/agents/registry.ts` | 에이전트 등록 및 캐싱               |
+| `lib/agents/graph.ts`    | 채팅 에이전트 그래프 (handoff 포함) |
 
 ---
 

@@ -543,6 +543,7 @@ export default function Home() {
 					</div>
 				</section>
 
+<<<<<<< Updated upstream
 				{/* Chat Section */}
 				<section className="overflow-hidden rounded-3xl border border-neutral-200 bg-white/80 shadow-2xl shadow-neutral-200/50 backdrop-blur-xl">
 					{/* Chat Header */}
@@ -579,6 +580,19 @@ export default function Home() {
 								</div>
 								<Badge size="sm" variant="outline" color="secondary">
 									GPT-5.2
+=======
+				<section className="rounded-3xl border border-default bg-surface-elevated shadow-xl">
+					<div className="flex flex-col gap-6 p-5 sm:p-6">
+						<div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-[0.3em] text-secondary">
+							<span>Brand Chat Studio</span>
+							<div className="flex items-center gap-2 text-xs text-secondary">
+								{isStreaming ? (
+									<LoadingDots className="text-secondary" />
+								) : null}
+								<span>{isStreaming ? "Streaming reply" : "Ready"}</span>
+								<Badge size="sm" variant="outline">
+									gpt-4.1-mini
+>>>>>>> Stashed changes
 								</Badge>
 								{messages.length > 0 && (
 									<Button

@@ -321,11 +321,15 @@ export async function POST(req: Request) {
 						"Event type:",
 						event.type,
 						"Data:",
+<<<<<<< Updated upstream
 						JSON.stringify(
 							event.type === "run_item_stream_event"
 								? { name: event.name, itemType: event.item?.type }
 								: (event as any).data || {},
 						),
+=======
+						JSON.stringify(event.data || {}),
+>>>>>>> Stashed changes
 					);
 
 					// Stream text deltas to client
@@ -341,6 +345,7 @@ export async function POST(req: Request) {
 
 					// Capture tool calls from run item stream events
 					if (
+<<<<<<< Updated upstream
 						event.type === "run_item_stream_event" &&
 						event.name === "tool_called"
 					) {
@@ -388,6 +393,44 @@ export async function POST(req: Request) {
 									: undefined;
 							if (path && newValue !== undefined) {
 								addBrandUpdate(path, newValue, reason, rawItem.callId);
+=======
+						(event.type === "tool_call" ||
+							event.type === "tool_call_started" ||
+							event.type === "raw_tool_call") &&
+						event.data?.name === "update_brand_property"
+					) {
+						console.log("Tool call detected:", event.data);
+						const args = event.data.arguments || event.data.args || {};
+						const { path, newValue, reason } = args;
+						if (path && newValue !== undefined) {
+							brandUpdates.push({ path, value: newValue, reason });
+							console.log("Brand update added:", {
+								path,
+								value: newValue,
+								reason,
+							});
+						}
+					}
+
+					// Also try capturing from tool results
+					if (
+						event.type === "tool_result" &&
+						event.data?.tool_name === "update_brand_property"
+					) {
+						console.log("Tool result detected:", event.data);
+						try {
+							const result = JSON.parse(event.data.result || "{}");
+							if (result.path && result.newValue !== undefined) {
+								brandUpdates.push({
+									path: result.path,
+									value: result.newValue,
+									reason: result.reason,
+								});
+								console.log("Brand update from result:", {
+									path: result.path,
+									value: result.newValue,
+								});
+>>>>>>> Stashed changes
 							}
 						}
 					}

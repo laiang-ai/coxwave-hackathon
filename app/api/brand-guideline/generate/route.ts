@@ -1,125 +1,125 @@
 import { NextResponse } from "next/server";
 import {
-	LogoAssetSchema,
-	runBrandWorkflow,
-	toBrandType,
-	UserInputSchema,
-	type WorkflowEvent,
+  LogoAssetSchema,
+  runBrandWorkflow,
+  toBrandType,
+  UserInputSchema,
+  type WorkflowEvent,
 } from "@/lib/brand-guideline";
 import { sanitizeUserInput } from "@/lib/agents/safety";
 
 export const maxDuration = 300; // 5 minutes max
 
 export async function POST(req: Request) {
-	try {
-		const body = await req.json();
+  try {
+    const body = await req.json();
 
-		// Validate user input
-		const userInputResult = UserInputSchema.safeParse(body.userInput);
-		if (!userInputResult.success) {
-			return NextResponse.json(
-				{ error: "Invalid user input", details: userInputResult.error.issues },
-				{ status: 400 },
-			);
-		}
+    // Validate user input
+    const userInputResult = UserInputSchema.safeParse(body.userInput);
+    if (!userInputResult.success) {
+      return NextResponse.json(
+        { error: "Invalid user input", details: userInputResult.error.issues },
+        { status: 400 },
+      );
+    }
 
-		// Validate logo asset
-		const logoAssetResult = LogoAssetSchema.safeParse(body.logoAsset);
-		if (!logoAssetResult.success) {
-			return NextResponse.json(
-				{ error: "Invalid logo asset", details: logoAssetResult.error.issues },
-				{ status: 400 },
-			);
-		}
+    // Validate logo asset
+    const logoAssetResult = LogoAssetSchema.safeParse(body.logoAsset);
+    if (!logoAssetResult.success) {
+      return NextResponse.json(
+        { error: "Invalid logo asset", details: logoAssetResult.error.issues },
+        { status: 400 },
+      );
+    }
 
-		const userInput = userInputResult.data;
-		const logoAsset = logoAssetResult.data;
+    const userInput = userInputResult.data;
+    const logoAsset = logoAssetResult.data;
 
-		// Safety validation - check for prompt injection and dangerous patterns
-		const safetyResult = sanitizeUserInput(userInput);
-		if (!safetyResult.isValid) {
-			console.warn("Safety warnings detected:", safetyResult.warnings);
-			// Log warnings but don't block - allow with monitoring
-			// For stricter enforcement, uncomment:
-			// return NextResponse.json(
-			// 	{ error: "Input validation failed", details: safetyResult.warnings },
-			// 	{ status: 400 },
-			// );
-		}
+    // Safety validation - check for prompt injection and dangerous patterns
+    const safetyResult = sanitizeUserInput(userInput);
+    if (!safetyResult.isValid) {
+      console.warn("Safety warnings detected:", safetyResult.warnings);
+      // Log warnings but don't block - allow with monitoring
+      // For stricter enforcement, uncomment:
+      // return NextResponse.json(
+      // 	{ error: "Input validation failed", details: safetyResult.warnings },
+      // 	{ status: 400 },
+      // );
+    }
 
-		// Create SSE stream for progress updates
-		const encoder = new TextEncoder();
+    // Create SSE stream for progress updates
+    const encoder = new TextEncoder();
 
-		const stream = new ReadableStream({
-			async start(controller) {
-				const sendEvent = (event: WorkflowEvent) => {
-					const data = JSON.stringify(event);
-					controller.enqueue(encoder.encode(`data: ${data}\n\n`));
-				};
+    const stream = new ReadableStream({
+      async start(controller) {
+        const sendEvent = (event: WorkflowEvent) => {
+          const data = JSON.stringify(event);
+          controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+        };
 
-				try {
-					for await (const event of runBrandWorkflow(userInput, logoAsset)) {
-						if (event.type === "complete") {
-							// Transform to BrandType and send final result
-							try {
-								const brandType = toBrandType(
-									event.data.identity,
-									event.data.guideline,
-									event.data.logoAsset,
-								);
-								console.log("[API] toBrandType success");
+        try {
+          for await (const event of runBrandWorkflow(userInput, logoAsset)) {
+            if (event.type === "complete") {
+              // Transform to BrandType and send final result
+              try {
+                const brandType = toBrandType(
+                  event.data.identity,
+                  event.data.guideline,
+                  event.data.logoAsset,
+                );
+                console.log("[API] toBrandType success", brandType);
 
-								sendEvent({
-									type: "complete",
-									data: {
-										...event.data,
-										brandType,
-									},
-								} as unknown as WorkflowEvent);
-							} catch (transformError) {
-								console.error("[API] toBrandType error:", transformError);
-								// 변환 실패해도 원본 데이터로 complete 이벤트 전송
-								sendEvent({
-									type: "complete",
-									data: event.data,
-								} as unknown as WorkflowEvent);
-							}
-						} else {
-							sendEvent(event);
-						}
-					}
-				} catch (error) {
-					console.error("Workflow error:", error);
-					sendEvent({
-						type: "error",
-						error: error instanceof Error ? error.message : "Unknown error",
-					});
-				} finally {
-					controller.close();
-				}
-			},
-		});
+                sendEvent({
+                  type: "complete",
+                  data: {
+                    ...event.data,
+                    brandType,
+                  },
+                } as unknown as WorkflowEvent);
+              } catch (transformError) {
+                console.error("[API] toBrandType error:", transformError);
+                // 변환 실패해도 원본 데이터로 complete 이벤트 전송
+                sendEvent({
+                  type: "complete",
+                  data: event.data,
+                } as unknown as WorkflowEvent);
+              }
+            } else {
+              sendEvent(event);
+            }
+          }
+        } catch (error) {
+          console.error("Workflow error:", error);
+          sendEvent({
+            type: "error",
+            error: error instanceof Error ? error.message : "Unknown error",
+          });
+        } finally {
+          controller.close();
+        }
+      },
+    });
 
-		return new Response(stream, {
-			headers: {
-				"Content-Type": "text/event-stream",
-				"Cache-Control": "no-cache",
-				Connection: "keep-alive",
-			},
-		});
-	} catch (error) {
-		console.error("API error:", error);
-		return NextResponse.json(
-			{ error: error instanceof Error ? error.message : "Unknown error" },
-			{ status: 500 },
-		);
-	}
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
+  } catch (error) {
+    console.error("API error:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 },
+    );
+  }
 }
 
 // Health check endpoint
 export async function GET() {
-	return NextResponse.json({
-		status: "ok",
-		endpoint: "brand-guideline/generate",
-	});
+  return NextResponse.json({
+    status: "ok",
+    endpoint: "brand-guideline/generate",
+  });
 }
