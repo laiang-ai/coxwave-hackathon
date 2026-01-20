@@ -58,34 +58,28 @@ export function ChatSidebar() {
     editor.setStreaming(true);
 
     try {
+      // Format messages for OpenAI Agents SDK
+      const formattedMessages = editor.aiAssistant.messages.map((m) => ({
+        role: m.role,
+        content: [{ type: "input_text", text: m.content }],
+      }));
+
+      // Add current user message
+      formattedMessages.push({
+        role: "user",
+        content: [
+          {
+            type: "input_text",
+            text: message,
+          },
+        ],
+      });
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [
-            ...editor.aiAssistant.messages.map((m) => ({
-              role: m.role,
-              content: [
-                {
-                  type: "input_text",
-                  text: m.content,
-                },
-              ],
-            })),
-            {
-              role: "user",
-              content: [
-                {
-                  type: "input_text",
-                  text: `브랜드 데이터 수정 요청: ${message}\n\n현재 브랜드 데이터:\n${JSON.stringify(
-                    editor.mergedData,
-                    null,
-                    2
-                  )}`,
-                },
-              ],
-            },
-          ],
+          messages: formattedMessages,
         }),
       });
 
