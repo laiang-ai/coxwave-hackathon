@@ -52,6 +52,23 @@ const readFileAsDataUrl = (file: File) =>
 		reader.readAsDataURL(file);
 	});
 
+const getImageInfo = (
+	dataUrl: string,
+): Promise<{ format: "png" | "jpg" | "svg"; width: number; height: number }> =>
+	new Promise((resolve, reject) => {
+		const img = new globalThis.Image();
+		img.onload = () => {
+			const mimeType = dataUrl.split(";")[0].split("/")[1];
+			const format = (mimeType === "jpeg" ? "jpg" : mimeType) as
+				| "png"
+				| "jpg"
+				| "svg";
+			resolve({ format, width: img.width, height: img.height });
+		};
+		img.onerror = reject;
+		img.src = dataUrl;
+	});
+
 const STORAGE_KEY = "chat-messages";
 
 export default function Home() {
@@ -264,22 +281,23 @@ export default function Home() {
 		setIsGenerating(true);
 
 		try {
-			// Create minimal UserInput from analysis data
+			// Extract image info from logo data URL
+			const imageInfo = await getImageInfo(action.data.logoDataUrl);
+
+			// Create UserInput matching the schema
 			const userInput = {
 				brandName: "Brand",
 				industry: "General",
-				oneLiner: "",
-				keywords: [],
-				toneOptions: [],
-				targetAudience: "",
-				preferences: {},
+				oneLiner: "브랜드 가이드라인을 위한 로고 분석 기반 생성",
+				logoDataUrl: action.data.logoDataUrl,
 			};
 
+			// Create LogoAsset matching the schema
 			const logoAsset = {
-				id: crypto.randomUUID(),
 				url: action.data.logoDataUrl,
-				name: "logo",
-				dataUrl: action.data.logoDataUrl,
+				format: imageInfo.format,
+				width: imageInfo.width,
+				height: imageInfo.height,
 			};
 
 			const response = await fetch("/api/brand-guideline/generate", {
@@ -289,6 +307,8 @@ export default function Home() {
 			});
 
 			if (!response.ok) {
+				const errorData = await response.json().catch(() => ({}));
+				console.error("API error details:", errorData);
 				throw new Error("Failed to generate guidelines");
 			}
 

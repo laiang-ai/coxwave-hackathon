@@ -1,4 +1,5 @@
 import { run } from "@openai/agents";
+import { logWorkflowEvent } from "./logger";
 import { createAnalysisAgent } from "@/lib/agents/agents/analysis";
 import { createApplicationsAgent } from "@/lib/agents/agents/applications";
 import { createColorAgent } from "@/lib/agents/agents/color";
@@ -384,70 +385,111 @@ export async function* runBrandWorkflow(
 ): AsyncGenerator<WorkflowEvent> {
 	try {
 		// Phase 1.5: Logo Asset (already provided)
-		yield {
+		const logoAssetComplete: WorkflowEvent = {
 			type: "phase-complete",
 			phase: "logo-asset",
 			message: "로고 에셋 처리 완료",
 		};
+		logWorkflowEvent(logoAssetComplete);
+		yield logoAssetComplete;
 
 		// Phase 2: Analysis (parallel)
-		yield { type: "phase-start", phase: "analysis", message: "분석 시작" };
+		const analysisStart: WorkflowEvent = {
+			type: "phase-start",
+			phase: "analysis",
+			message: "분석 시작",
+		};
+		logWorkflowEvent(analysisStart);
+		yield analysisStart;
 
-		yield { type: "agent-start", agent: "vision", message: "로고 분석 중..." };
-		yield {
+		const visionStart: WorkflowEvent = {
+			type: "agent-start",
+			agent: "vision",
+			message: "로고 분석 중...",
+		};
+		logWorkflowEvent(visionStart);
+		yield visionStart;
+
+		const analysisAgentStart: WorkflowEvent = {
 			type: "agent-start",
 			agent: "analysis",
 			message: "시장 분석 중...",
 		};
+		logWorkflowEvent(analysisAgentStart);
+		yield analysisAgentStart;
 
 		const [logoAnalysis, marketContext] = await Promise.all([
 			runVisionAgent(input, logoAsset),
 			runAnalysisAgent(input),
 		]);
 
-		yield {
+		const visionComplete: WorkflowEvent = {
 			type: "agent-complete",
 			agent: "vision",
 			message: "로고 분석 완료",
 		};
-		yield {
+		logWorkflowEvent(visionComplete);
+		yield visionComplete;
+
+		const analysisAgentComplete: WorkflowEvent = {
 			type: "agent-complete",
 			agent: "analysis",
 			message: "시장 분석 완료",
 		};
-		yield { type: "phase-complete", phase: "analysis", message: "분석 완료" };
+		logWorkflowEvent(analysisAgentComplete);
+		yield analysisAgentComplete;
+
+		const analysisPhaseComplete: WorkflowEvent = {
+			type: "phase-complete",
+			phase: "analysis",
+			message: "분석 완료",
+		};
+		logWorkflowEvent(analysisPhaseComplete);
+		yield analysisPhaseComplete;
 
 		// Phase 3: Identity Model
-		yield {
+		const identityPhaseStart: WorkflowEvent = {
 			type: "phase-start",
 			phase: "identity",
 			message: "아이덴티티 생성 시작",
 		};
-		yield {
+		logWorkflowEvent(identityPhaseStart);
+		yield identityPhaseStart;
+
+		const identityAgentStart: WorkflowEvent = {
 			type: "agent-start",
 			agent: "identity",
 			message: "브랜드 아이덴티티 생성 중...",
 		};
+		logWorkflowEvent(identityAgentStart);
+		yield identityAgentStart;
 
 		const identity = await runIdentityAgent(input, logoAnalysis, marketContext);
 
-		yield {
+		const identityAgentComplete: WorkflowEvent = {
 			type: "agent-complete",
 			agent: "identity",
 			message: "아이덴티티 생성 완료",
 		};
-		yield {
+		logWorkflowEvent(identityAgentComplete);
+		yield identityAgentComplete;
+
+		const identityPhaseComplete: WorkflowEvent = {
 			type: "phase-complete",
 			phase: "identity",
 			message: "아이덴티티 완료",
 		};
+		logWorkflowEvent(identityPhaseComplete);
+		yield identityPhaseComplete;
 
 		// Phase 4: Guideline Model (6 agents in parallel)
-		yield {
+		const guidelinesPhaseStart: WorkflowEvent = {
 			type: "phase-start",
 			phase: "guidelines",
 			message: "가이드라인 생성 시작",
 		};
+		logWorkflowEvent(guidelinesPhaseStart);
+		yield guidelinesPhaseStart;
 
 		const guidelineAgents = [
 			"logo-guide",
@@ -458,13 +500,25 @@ export async function* runBrandWorkflow(
 			"design-standards",
 		];
 		for (const agent of guidelineAgents) {
-			yield { type: "agent-start", agent, message: `${agent} 생성 중...` };
+			const agentStart: WorkflowEvent = {
+				type: "agent-start",
+				agent,
+				message: `${agent} 생성 중...`,
+			};
+			logWorkflowEvent(agentStart);
+			yield agentStart;
 		}
 
 		const guidelinePartial = await runGuidelineAgents(identity, input);
 
 		for (const agent of guidelineAgents) {
-			yield { type: "agent-complete", agent, message: `${agent} 완료` };
+			const agentComplete: WorkflowEvent = {
+				type: "agent-complete",
+				agent,
+				message: `${agent} 완료`,
+			};
+			logWorkflowEvent(agentComplete);
+			yield agentComplete;
 		}
 
 		const guideline: GuidelineModel = GuidelineModelSchema.parse({
@@ -474,28 +528,38 @@ export async function* runBrandWorkflow(
 			...guidelinePartial,
 		});
 
-		yield {
+		const guidelinesPhaseComplete: WorkflowEvent = {
 			type: "phase-complete",
 			phase: "guidelines",
 			message: "가이드라인 완료",
 		};
+		logWorkflowEvent(guidelinesPhaseComplete);
+		yield guidelinesPhaseComplete;
 
 		// Phase 5: Content Generation (2 agents in parallel)
-		yield {
+		const contentPhaseStart: WorkflowEvent = {
 			type: "phase-start",
 			phase: "content",
 			message: "콘텐츠 생성 시작",
 		};
-		yield {
+		logWorkflowEvent(contentPhaseStart);
+		yield contentPhaseStart;
+
+		const copywritingStart: WorkflowEvent = {
 			type: "agent-start",
 			agent: "copywriting",
 			message: "카피라이팅 중...",
 		};
-		yield {
+		logWorkflowEvent(copywritingStart);
+		yield copywritingStart;
+
+		const applicationsStart: WorkflowEvent = {
 			type: "agent-start",
 			agent: "applications",
 			message: "적용 예시 생성 중...",
 		};
+		logWorkflowEvent(applicationsStart);
+		yield applicationsStart;
 
 		const contentPartial = await runContentAgents(identity, guidelinePartial);
 
@@ -513,24 +577,32 @@ export async function* runBrandWorkflow(
 			...contentPartial.applications,
 		});
 
-		yield {
+		const copywritingComplete: WorkflowEvent = {
 			type: "agent-complete",
 			agent: "copywriting",
 			message: "카피라이팅 완료",
 		};
-		yield {
+		logWorkflowEvent(copywritingComplete);
+		yield copywritingComplete;
+
+		const applicationsComplete: WorkflowEvent = {
 			type: "agent-complete",
 			agent: "applications",
 			message: "적용 예시 완료",
 		};
-		yield {
+		logWorkflowEvent(applicationsComplete);
+		yield applicationsComplete;
+
+		const contentPhaseComplete: WorkflowEvent = {
 			type: "phase-complete",
 			phase: "content",
 			message: "콘텐츠 생성 완료",
 		};
+		logWorkflowEvent(contentPhaseComplete);
+		yield contentPhaseComplete;
 
 		// Complete
-		yield {
+		const completeEvent: WorkflowEvent = {
 			type: "complete",
 			data: {
 				identity,
@@ -541,11 +613,23 @@ export async function* runBrandWorkflow(
 				marketContext,
 			},
 		};
+		logWorkflowEvent(completeEvent);
+		yield completeEvent;
 	} catch (error) {
-		yield {
+		const errorEvent: WorkflowEvent = {
 			type: "error",
 			error: error instanceof Error ? error.message : "Unknown error",
 		};
+		logWorkflowEvent(errorEvent);
+
+		if (
+			process.env.WORKFLOW_LOG_LEVEL === "debug" &&
+			error instanceof Error
+		) {
+			console.error("Stack trace:", error.stack);
+		}
+
+		yield errorEvent;
 	}
 }
 
