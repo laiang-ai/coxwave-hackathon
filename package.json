@@ -9,7 +9,8 @@
 		"start": "next start",
 		"lint": "biome lint .",
 		"format": "biome format --write .",
-		"validate": "biome check --fix ."
+		"validate": "biome check --fix .",
+		"types:check": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@openai/agents": "^0.4.1",

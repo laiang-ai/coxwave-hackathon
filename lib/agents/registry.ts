@@ -5,6 +5,16 @@ import { createVisionAgent } from "./agents/vision";
 import { createChatAgent } from "./graph";
 import type { AgentFactory } from "./types";
 // AGENT_IMPORTS_START
+import { createAnalysisAgent } from "./agents/analysis";
+import { createIdentityAgent } from "./agents/identity";
+import { createLogoGuideAgent } from "./agents/logo-guide";
+import { createColorAgent } from "./agents/color";
+import { createTypographyAgent } from "./agents/typography";
+import { createToneAgent } from "./agents/tone";
+import { createVisualAgent } from "./agents/visual";
+import { createDesignStandardsAgent } from "./agents/design-standards";
+import { createCopywritingAgent } from "./agents/copywriting";
+import { createApplicationsAgent } from "./agents/applications";
 // AGENT_IMPORTS_END
 
 export const agentIds = [
@@ -13,6 +23,16 @@ export const agentIds = [
 	"vision",
 	"summarizer",
 	"planner",
+	"analysis",
+	"identity",
+	"logo-guide",
+	"color",
+	"typography",
+	"tone",
+	"visual",
+	"design-standards",
+	"copywriting",
+	"applications",
 	// AGENT_ID_END
 ] as const;
 
@@ -24,6 +44,16 @@ const registry: Record<AgentId, AgentFactory> = {
 	vision: createVisionAgent,
 	summarizer: createSummarizerAgent,
 	planner: createPlannerAgent,
+	analysis: createAnalysisAgent,
+	identity: createIdentityAgent,
+	"logo-guide": createLogoGuideAgent,
+	color: createColorAgent,
+	typography: createTypographyAgent,
+	tone: createToneAgent,
+	visual: createVisualAgent,
+	"design-standards": createDesignStandardsAgent,
+	copywriting: createCopywritingAgent,
+	applications: createApplicationsAgent,
 	// AGENT_REGISTRY_END
 };
 

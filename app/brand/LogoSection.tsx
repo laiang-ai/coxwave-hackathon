@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { BrandType, ThemeColors } from "./types";
+import type { BrandType, ThemeColors, LogoAsset } from "./types";
 
 type LogoData = BrandType["logo"];
 
