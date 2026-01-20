@@ -9,16 +9,7 @@ export type RouteDecision = {
 	reason: string;
 };
 
-const summarizerKeywords = ["요약", "정리", "summary", "summarize", "tl;dr"];
-const plannerKeywords = ["계획", "로드맵", "roadmap", "plan", "일정", "todo"];
-const visionKeywords = [
-	"이미지",
-	"사진",
-	"image",
-	"사진 분석",
-	"스샷",
-	"screenshot",
-];
+// Brand-specific keywords for routing
 const brandEditorKeywords = [
 	"브랜드",
 	"brand",
@@ -75,16 +66,15 @@ const extractText = (message?: UserMessageItem) => {
 		.join(" ");
 };
 
-const hasImage = (message?: UserMessageItem) => {
-	if (!message || typeof message.content === "string") return false;
-	return message.content.some((part) => part.type === "input_image");
-};
-
 const matchesKeyword = (text: string, keywords: string[]) =>
 	keywords.some((keyword) =>
 		text.toLowerCase().includes(keyword.toLowerCase()),
 	);
 
+/**
+ * Simple router for brand guideline editing
+ * Routes to brand-editor agent if brand keywords are found, otherwise uses assistant
+ */
 export const routeAgent = (
 	messages: AgentInputItem[],
 	options?: {
@@ -92,6 +82,7 @@ export const routeAgent = (
 		preferredAgentId?: AgentId;
 	},
 ) => {
+	// Manual override
 	if (options?.strategy === "manual" && options.preferredAgentId) {
 		return {
 			decision: {
@@ -105,27 +96,7 @@ export const routeAgent = (
 	const lastUser = getLastUserMessage(messages);
 	const text = extractText(lastUser);
 
-	if (hasImage(lastUser) || matchesKeyword(text, visionKeywords)) {
-		return {
-			decision: { agentId: "vision", reason: "image_or_vision_keyword" },
-			agent: getAgent("vision"),
-		};
-	}
-
-	if (matchesKeyword(text, summarizerKeywords)) {
-		return {
-			decision: { agentId: "summarizer", reason: "summary_keyword" },
-			agent: getAgent("summarizer"),
-		};
-	}
-
-	if (matchesKeyword(text, plannerKeywords)) {
-		return {
-			decision: { agentId: "planner", reason: "planning_keyword" },
-			agent: getAgent("planner"),
-		};
-	}
-
+	// Route to brand-editor if brand-related keywords detected
 	if (matchesKeyword(text, brandEditorKeywords)) {
 		return {
 			decision: { agentId: "brand-editor", reason: "brand_editing_keyword" },
@@ -133,6 +104,7 @@ export const routeAgent = (
 		};
 	}
 
+	// Default to assistant for general queries
 	return {
 		decision: { agentId: "assistant", reason: "default" },
 		agent: getAgent("assistant"),
