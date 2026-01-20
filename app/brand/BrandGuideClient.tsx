@@ -86,6 +86,8 @@ function BrandGuideClientInner() {
 		overrides.fontFamily ??
 		typography.scale.display.large.fontFamily ??
 		"ui-sans-serif";
+	const isRightPanelOpen =
+		editor.aiAssistant.isOpen || editor.inspector.isOpen;
 
 	const themeVars: CSSProperties = {
 		"--bg-primary": "#ffffff",
@@ -161,7 +163,11 @@ function BrandGuideClientInner() {
 			/>
 
 			{/* Center Content Area */}
-			<div className="flex-1 overflow-y-auto scroll-smooth">
+			<div
+				className={`flex-1 overflow-y-auto scroll-smooth transition-[padding] duration-300 ease-out ${
+					isRightPanelOpen ? "md:pr-[400px]" : "pr-0"
+				}`}
+			>
 				<div className="mx-auto max-w-5xl px-8 py-12 pb-32">
 					{/* Hero Section */}
 					<header ref={sectionRefs.overview} className="mb-20 pt-10">

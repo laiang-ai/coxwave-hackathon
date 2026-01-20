@@ -18,7 +18,7 @@ export function ChatSidebar() {
 	const [input, setInput] = useState("");
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
-	const [isExpanded, setIsExpanded] = useState(true);
+	const isExpanded = editor.aiAssistant.isOpen;
 
 	// Auto-scroll to bottom on new messages
 	useEffect(() => {
@@ -155,7 +155,7 @@ export function ChatSidebar() {
 	if (!isExpanded) {
 		return (
 			<button
-				onClick={() => setIsExpanded(true)}
+				onClick={() => editor.openAI()}
 				className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-black shadow-xl transition-transform hover:scale-105 active:scale-95 z-50"
 			>
 				<Bot className="h-6 w-6" />
@@ -181,7 +181,7 @@ export function ChatSidebar() {
 					</div>
 				</div>
 				<button
-					onClick={() => setIsExpanded(false)}
+					onClick={() => editor.closeAI()}
 					className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
 				>
 					<X className="h-4 w-4" />

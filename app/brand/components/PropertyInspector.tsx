@@ -53,7 +53,7 @@ export function PropertyInspector() {
 	const isString = typeof localValue === "string" && !isColor;
 
 	return (
-		<aside className="no-print w-full md:w-[400px] h-full flex flex-col border-l border-[color:var(--border-default)] bg-[color:var(--bg-primary)] shadow-2xl relative z-20 overflow-hidden">
+		<aside className="no-print fixed right-0 top-0 z-50 flex h-full w-full flex-col border-l border-[color:var(--border-default)] bg-[color:var(--bg-primary)] shadow-2xl overflow-hidden md:w-[400px]">
 			{/* Header */}
 			<div className="flex items-center justify-between border-b border-[color:var(--border-default)] px-6 py-4">
 				<div className="flex-1">

@@ -126,7 +126,7 @@ export function BrandEditorProvider({
 
 	// AI assistant state
 	const [aiAssistant, setAIAssistant] = useState<AIAssistantState>({
-		isOpen: false,
+		isOpen: true,
 		messages: [],
 		isStreaming: false,
 		currentStreamContent: "",
@@ -145,6 +145,10 @@ export function BrandEditorProvider({
 			const value = path
 				.split(".")
 				.reduce((obj, key) => obj?.[key], brandData.mergedData as any);
+			setAIAssistant((prev) => ({
+				...prev,
+				isOpen: false,
+			}));
 			setInspector({
 				isOpen: true,
 				path,
@@ -165,6 +169,10 @@ export function BrandEditorProvider({
 	// AI assistant actions
 	const openAI = useCallback(
 		(context?: { targetPath?: string; prompt?: string }) => {
+			setInspector((prev) => ({
+				...prev,
+				isOpen: false,
+			}));
 			setAIAssistant((prev) => ({
 				...prev,
 				isOpen: true,
