@@ -71,3 +71,4 @@ export {
 	type UserInput,
 	UserInputSchema,
 } from "./user-input";
+export { type BrandType, BrandTypeSchema } from "./brand-type";

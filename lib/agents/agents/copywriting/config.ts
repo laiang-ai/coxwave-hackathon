@@ -78,7 +78,7 @@ export const copywritingConfig: AgentOptions = {
 - channelMessages.examples: 반드시 { "type": string, "text": string } 객체 배열
 - boilerplate: short, medium, long 모두 필수
 - ctaExamples: context, primary 필수, secondary는 선택`,
-	model: "gpt-5.2",
+	model: "gpt-4.1-mini",
 	modelSettings: {
 		temperature: 0.5,
 	},

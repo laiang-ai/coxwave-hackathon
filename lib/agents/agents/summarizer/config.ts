@@ -6,7 +6,7 @@ export const summarizerConfig: AgentOptions = {
 	name: "Brand Kit Summarizer",
 	instructions:
 		"Summarize content clearly. Provide bullet summaries and key takeaways in Korean unless asked otherwise.",
-	model: "gpt-5.2",
+	model: "gpt-4.1-mini",
 	modelSettings: {
 		temperature: 0.3,
 	},

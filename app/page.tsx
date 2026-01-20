@@ -18,6 +18,7 @@ import { LoadingDots } from "@openai/apps-sdk-ui/components/Indicator";
 import { Textarea } from "@openai/apps-sdk-ui/components/Textarea";
 import { useRouter } from "next/navigation";
 import { MarkdownRenderer } from "./components/MarkdownRenderer";
+import { clearLogoImages, storeLogoImages } from "@/lib/logo-storage";
 import type { ChangeEvent, KeyboardEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -44,6 +45,13 @@ type ChatMessage = {
 	images?: ImageAttachment[];
 	pending?: boolean;
 	action?: MessageAction;
+};
+
+type RawData = {
+	logoAnalysis?: unknown;
+	marketContext?: unknown;
+	identity?: unknown;
+	guideline?: unknown;
 };
 
 const readFileAsDataUrl = (file: File) =>
@@ -82,6 +90,8 @@ export default function Home() {
 	const [isComposing, setIsComposing] = useState(false);
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [isSampleQuery, setIsSampleQuery] = useState(false);
+	const [rawData, setRawData] = useState<RawData>({});
+	const [generationPhase, setGenerationPhase] = useState<string>("");
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -117,6 +127,7 @@ export default function Home() {
 	const clearChat = useCallback(() => {
 		setMessages([]);
 		localStorage.removeItem(STORAGE_KEY);
+		void clearLogoImages();
 	}, []);
 
 	const canSend = useMemo(
@@ -199,12 +210,8 @@ export default function Home() {
 				const response = await fetch("/samples/protopie-output.json");
 				const data = await response.json();
 				localStorage.setItem("generatedBrandType", JSON.stringify(data));
-				// Save user uploaded images for use in /brand page
 				if (currentAttachments.length > 0) {
-					localStorage.setItem(
-						"brandLogoImages",
-						JSON.stringify(currentAttachments),
-					);
+					await storeLogoImages(currentAttachments);
 				}
 				router.push("/brand");
 			} catch (error) {
@@ -212,6 +219,10 @@ export default function Home() {
 				setIsStreaming(false);
 			}
 			return;
+		}
+
+		if (attachments.length > 0) {
+			void storeLogoImages(attachments);
 		}
 
 		const userMessage: ChatMessage = {
@@ -314,6 +325,8 @@ export default function Home() {
 	const handleGenerateGuidelines = async (action: MessageAction) => {
 		if (isGenerating) return;
 		setIsGenerating(true);
+		setRawData({});
+		setGenerationPhase("starting");
 
 		try {
 			// Extract image info from logo data URL
@@ -351,6 +364,45 @@ export default function Home() {
 			const reader = response.body?.getReader();
 			const decoder = new TextDecoder();
 			let finalData = null;
+			const collectedRawData: RawData = {};
+			let buffer = ""; // 불완전한 청크를 버퍼링
+
+			const processLine = (line: string) => {
+				if (!line.startsWith("data: ")) return;
+				try {
+					const eventData = JSON.parse(line.slice(6));
+					console.log("[handleGenerateGuidelines] Event:", eventData.type, eventData.agent || "");
+
+					// Handle phase/agent status updates
+					if (eventData.type === "phase-start" || eventData.type === "agent-start") {
+						setGenerationPhase(eventData.message || eventData.phase || eventData.agent);
+					}
+
+					// Handle agent-data events - collect raw data
+					if (eventData.type === "agent-data") {
+						console.log("[handleGenerateGuidelines] agent-data received:", eventData.agent);
+						const agentToField: Record<string, keyof RawData> = {
+							vision: "logoAnalysis",
+							analysis: "marketContext",
+							identity: "identity",
+							guideline: "guideline",
+						};
+						const field = agentToField[eventData.agent];
+						if (field) {
+							collectedRawData[field] = eventData.data;
+							setRawData({ ...collectedRawData });
+							console.log("[handleGenerateGuidelines] rawData updated:", Object.keys(collectedRawData));
+						}
+					}
+
+					// Handle complete event
+					if (eventData.type === "complete" && eventData.data) {
+						finalData = eventData.data;
+					}
+				} catch (e) {
+					console.warn("[handleGenerateGuidelines] JSON parse error:", e, "line:", line.slice(0, 100));
+				}
+			};
 
 			if (reader) {
 				let done = false;
@@ -359,32 +411,74 @@ export default function Home() {
 					done = doneReading;
 					if (!value) continue;
 
-					const text = decoder.decode(value, { stream: true });
-					const lines = text.split("\n");
+					const chunk = decoder.decode(value, { stream: true });
+					buffer += chunk;
+					const lines = buffer.split("\n");
+					// 마지막 라인은 불완전할 수 있으므로 버퍼에 유지
+					buffer = lines.pop() || "";
 
 					for (const line of lines) {
-						if (line.startsWith("data: ")) {
-							try {
-								const eventData = JSON.parse(line.slice(6));
-								if (eventData.phase === "complete" && eventData.data) {
-									finalData = eventData.data;
-								}
-							} catch {
-								// Ignore parse errors
-							}
-						}
+						processLine(line);
 					}
+				}
+
+				// 남은 버퍼 처리
+				if (buffer.trim()) {
+					processLine(buffer);
 				}
 			}
 
 			if (finalData) {
-				localStorage.setItem("generatedBrandType", JSON.stringify(finalData));
+				// Strip base64 image data to avoid localStorage quota exceeded error
+				const stripBase64 = (data: any): any => {
+					if (!data) return data;
+					if (typeof data === "string") {
+						return data.startsWith("data:") ? "[base64-omitted]" : data;
+					}
+					if (Array.isArray(data)) {
+						return data.map(stripBase64);
+					}
+					if (typeof data === "object") {
+						const result: any = {};
+						for (const key of Object.keys(data)) {
+							result[key] = stripBase64(data[key]);
+						}
+						return result;
+					}
+					return data;
+				};
+
+				const dataToStore = stripBase64(finalData);
+				const brandType = (dataToStore as { brandType?: unknown }).brandType;
+
+				if (!brandType) {
+					throw new Error("BrandType missing from server response.");
+				}
+
+				try {
+					// Save brandType for /brand page
+					localStorage.setItem("generatedBrandType", JSON.stringify(brandType));
+
+					// Save raw models to localStorage
+					const rawModels = {
+						identity: dataToStore.identity,
+						guideline: dataToStore.guideline,
+						marketContext: dataToStore.marketContext,
+						logoAsset: dataToStore.logoAsset,
+						generatedAt: new Date().toISOString(),
+					};
+					localStorage.setItem("generatedBrandModels", JSON.stringify(rawModels));
+				} catch (e) {
+					console.error("localStorage quota exceeded:", e);
+				}
+
 				router.push("/brand");
 			}
 		} catch (error) {
 			console.error("Failed to generate guidelines:", error);
 		} finally {
 			setIsGenerating(false);
+			setGenerationPhase("");
 		}
 	};
 
@@ -705,6 +799,31 @@ export default function Home() {
 																</>
 															)}
 														</Button>
+														{isGenerating && (
+															<div className="mt-3 space-y-2">
+																<p className="text-xs text-secondary">
+																	{generationPhase || "생성 중..."}
+																</p>
+																<div className="max-h-48 overflow-y-auto rounded-lg border border-subtle bg-surface p-2">
+																	{Object.keys(rawData).length === 0 ? (
+																		<p className="text-xs text-secondary">
+																			데이터 수신 대기 중...
+																		</p>
+																	) : (
+																		Object.entries(rawData).map(([key, value]) => (
+																			<div key={key} className="mb-2 last:mb-0">
+																				<p className="text-[10px] font-semibold uppercase text-secondary">
+																					[{key}]
+																				</p>
+																				<pre className="whitespace-pre-wrap break-all text-[10px] text-default">
+																					{JSON.stringify(value, null, 2)}
+																				</pre>
+																			</div>
+																		))
+																	)}
+																</div>
+															</div>
+														)}
 													</div>
 												) : null}
 											</div>

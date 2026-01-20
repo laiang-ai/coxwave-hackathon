@@ -196,6 +196,10 @@ export function logWorkflowEvent(
 				: "unknown";
 			const agentsRun = ctx?.agentsCompleted ?? "unknown";
 
+			// 방어적 체크 - event.data가 undefined일 수 있음
+			const identityId = event.data?.identity?.id ?? "unknown";
+			const guidelineId = event.data?.guideline?.id ?? "unknown";
+
 			console.log("");
 			console.log(`${ctxPrefix}${dim}${"─".repeat(50)}${reset}`);
 			console.log(
@@ -210,10 +214,10 @@ export function logWorkflowEvent(
 				`${ctxPrefix}${dim}  ├─ Agents Run: ${reset}${bright}${agentsRun}${reset}`,
 			);
 			console.log(
-				`${ctxPrefix}${dim}  ├─ Identity ID: ${reset}${dim}${event.data.identity.id}${reset}`,
+				`${ctxPrefix}${dim}  ├─ Identity ID: ${reset}${dim}${identityId}${reset}`,
 			);
 			console.log(
-				`${ctxPrefix}${dim}  └─ Guideline ID: ${reset}${dim}${event.data.guideline.id}${reset}`,
+				`${ctxPrefix}${dim}  └─ Guideline ID: ${reset}${dim}${guidelineId}${reset}`,
 			);
 			console.log("");
 
@@ -266,6 +270,60 @@ export function logWorkflowEvent(
 export interface ValidationIssue {
 	path: PropertyKey[];
 	message: string;
+}
+
+function formatSummaryValue(value: unknown): string {
+	if (typeof value === "string") return value;
+	if (typeof value === "number" || typeof value === "boolean")
+		return String(value);
+	return JSON.stringify(value ?? null);
+}
+
+/**
+ * 생성된 데이터 로깅
+ * @param ctx 로그 컨텍스트
+ * @param label 데이터 라벨 (예: "Vision Analysis", "Identity Model")
+ * @param data 로깅할 데이터
+ * @param summary 요약 정보 (선택적) - 전체 데이터 대신 핵심 정보만 표시할 때 사용
+ */
+export function logGeneratedData(
+	ctx: WorkflowLogContext,
+	label: string,
+	data: unknown,
+	summary?: Record<string, unknown>,
+): void {
+	const level = getLogLevel();
+	if (level === "silent") return;
+
+	const timestamp = formatTimestamp();
+	const { reset, dim, magenta, bright, cyan } = colors;
+	const ctxPrefix = `${dim}[${ctx.id}]${reset} `;
+
+	console.log("");
+	console.log(
+		`${ctxPrefix}${dim}[${timestamp}]${reset} ${magenta}${bright}📦 GENERATED DATA: ${label}${reset}`,
+	);
+
+	// 요약 정보가 있으면 요약만 출력
+	if (summary) {
+		for (const [key, value] of Object.entries(summary)) {
+			const displayValue = formatSummaryValue(value);
+			console.log(
+				`${ctxPrefix}${dim}  ├─ ${cyan}${key}:${reset} ${displayValue}`,
+			);
+		}
+	}
+
+	// debug 모드일 때만 전체 데이터 출력
+	if (level === "debug") {
+		console.log(`${ctxPrefix}${dim}  └─ Full data:${reset}`);
+		console.log(
+			JSON.stringify(data, null, 2)
+				.split("\n")
+				.map((line) => `${ctxPrefix}${dim}     ${line}${reset}`)
+				.join("\n"),
+		);
+	}
 }
 
 /**

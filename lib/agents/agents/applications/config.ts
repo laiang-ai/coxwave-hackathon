@@ -63,7 +63,7 @@ export const applicationsConfig: AgentOptions = {
 - print: 최소 2개 항목 필수
 - environmental: 선택사항 (빈 배열 가능)
 - 각 항목은 반드시 { "name": string, "description": string } 형태`,
-	model: "gpt-5.2",
+	model: "gpt-4.1-mini",
 	modelSettings: {
 		temperature: 0.4,
 	},

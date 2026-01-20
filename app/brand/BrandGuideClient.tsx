@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useCallback, useMemo, useState, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChatSidebar } from "./components/ChatSidebar";
 import { BrandNavigation } from "./components/BrandNavigation";
 import { PropertyInspector } from "./components/PropertyInspector";
@@ -35,15 +35,47 @@ type Overrides = {
 	fontFamily?: string;
 };
 
-const buildTheme = (data: BrandType, overrides: Overrides): ThemeColors => ({
-	light: data.color.lightTheme,
-	dark: data.color.darkTheme,
-	brand: {
-		primary: overrides.primary ?? data.color.brand.primary.hex,
-		secondary: overrides.secondary ?? data.color.brand.secondary.hex,
-		accent: overrides.accent ?? data.color.brand.accent.hex,
+const DEFAULT_THEME: ThemeColors = {
+	light: {
+		background: { primary: "#ffffff", secondary: "#f8fafc", tertiary: "#f1f5f9" },
+		foreground: { primary: "#0f172a", secondary: "#475569", muted: "#94a3b8" },
+		border: { default: "#e2e8f0", muted: "#f1f5f9" },
 	},
-});
+	dark: {
+		background: { primary: "#0f172a", secondary: "#1e293b", tertiary: "#334155" },
+		foreground: { primary: "#f8fafc", secondary: "#cbd5e1", muted: "#64748b" },
+		border: { default: "#334155", muted: "#1e293b" },
+	},
+	brand: {
+		primary: "#3b82f6",
+		secondary: "#6366f1",
+		accent: "#f59e0b",
+	},
+};
+
+const buildTheme = (data: BrandType, overrides: Overrides): ThemeColors => {
+	// Return default theme if color data is missing
+	if (!data.color) {
+		return {
+			...DEFAULT_THEME,
+			brand: {
+				primary: overrides.primary ?? DEFAULT_THEME.brand.primary,
+				secondary: overrides.secondary ?? DEFAULT_THEME.brand.secondary,
+				accent: overrides.accent ?? DEFAULT_THEME.brand.accent,
+			},
+		};
+	}
+
+	return {
+		light: data.color.lightTheme ?? DEFAULT_THEME.light,
+		dark: data.color.darkTheme ?? DEFAULT_THEME.dark,
+		brand: {
+			primary: overrides.primary ?? data.color.brand?.primary?.hex ?? DEFAULT_THEME.brand.primary,
+			secondary: overrides.secondary ?? data.color.brand?.secondary?.hex ?? DEFAULT_THEME.brand.secondary,
+			accent: overrides.accent ?? data.color.brand?.accent?.hex ?? DEFAULT_THEME.brand.accent,
+		},
+	};
+};
 
 const hexToRgba = (hex: string, alpha: number) => {
 	const normalized = hex.replace("#", "");
@@ -57,7 +89,11 @@ const hexToRgba = (hex: string, alpha: number) => {
 function BrandGuideClientInner() {
 	const editor = useBrandEditor();
 	const data = editor.mergedData;
-	const { brandName, version, createdAt } = data.meta;
+	const { brandName, version, createdAt } = data.meta ?? {
+		brandName: "Brand",
+		version: "1.0",
+		createdAt: new Date().toISOString(),
+	};
 	const { logo, color, typography } = data;
 	const [activeSection, setActiveSection] = useState("overview");
 
@@ -84,7 +120,7 @@ function BrandGuideClientInner() {
 	const theme = useMemo(() => buildTheme(data, overrides), [data, overrides]);
 	const brandFont =
 		overrides.fontFamily ??
-		typography.scale.display.large.fontFamily ??
+		typography?.scale?.display?.large?.fontFamily ??
 		"ui-sans-serif";
 	const isRightPanelOpen =
 		editor.aiAssistant.isOpen || editor.inspector.isOpen;
@@ -189,7 +225,13 @@ function BrandGuideClientInner() {
 					<div className="flex flex-col gap-10">
 						{/* Logo Section */}
 						<section ref={sectionRefs.logo} className="scroll-mt-10">
-							<LogoSection logo={logo} theme={theme} />
+							{logo ? (
+								<LogoSection logo={logo} theme={theme} />
+							) : (
+								<div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-500">
+									로고 데이터가 없습니다
+								</div>
+							)}
 						</section>
 
 						{/* Brand Overview */}
@@ -245,9 +287,9 @@ function BrandGuideClientInner() {
 										<p
 											className="mt-4"
 											style={{
-												fontSize: typography.scale.display.large.fontSize,
-												lineHeight: typography.scale.display.large.lineHeight,
-												fontWeight: typography.scale.display.large.fontWeight,
+												fontSize: typography?.scale?.display?.large?.fontSize ?? "3rem",
+												lineHeight: typography?.scale?.display?.large?.lineHeight ?? "1.2",
+												fontWeight: typography?.scale?.display?.large?.fontWeight ?? 700,
 												color: "var(--fg-primary)",
 											}}
 										>
@@ -265,9 +307,9 @@ function BrandGuideClientInner() {
 											<div>
 												<p
 													style={{
-														fontSize: typography.scale.heading.h1.fontSize,
-														lineHeight: typography.scale.heading.h1.lineHeight,
-														fontWeight: typography.scale.heading.h1.fontWeight,
+														fontSize: typography?.scale?.heading?.h1?.fontSize ?? "2rem",
+														lineHeight: typography?.scale?.heading?.h1?.lineHeight ?? "1.3",
+														fontWeight: typography?.scale?.heading?.h1?.fontWeight ?? 700,
 														color: "var(--fg-primary)",
 													}}
 												>
@@ -309,17 +351,17 @@ function BrandGuideClientInner() {
 								<div className="mt-4 grid gap-4 sm:grid-cols-3">
 									{[
 										{
-											...color.brand.primary,
+											name: color?.brand?.primary?.name ?? "Primary",
 											hex: theme.brand.primary,
 											path: "color.brand.primary.hex",
 										},
 										{
-											...color.brand.secondary,
+											name: color?.brand?.secondary?.name ?? "Secondary",
 											hex: theme.brand.secondary,
 											path: "color.brand.secondary.hex",
 										},
 										{
-											...color.brand.accent,
+											name: color?.brand?.accent?.name ?? "Accent",
 											hex: theme.brand.accent,
 											path: "color.brand.accent.hex",
 										},
@@ -395,6 +437,14 @@ export default function BrandGuideClient({
 	data,
 	logoImages = [],
 }: BrandGuideClientProps) {
+	useEffect(() => {
+		try {
+			localStorage.setItem("generatedBrandType", JSON.stringify(data));
+		} catch (error) {
+			console.error("Failed to store brand data:", error);
+		}
+	}, [data]);
+
 	return (
 		<BrandEditorProvider initialData={data} logoImages={logoImages}>
 			<BrandGuideClientInner />

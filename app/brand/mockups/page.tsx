@@ -541,6 +541,16 @@ const hexToRgba = (hex: string, alpha: number) => {
 	return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
+const isValidBrandType = (value: unknown): value is BrandType => {
+	if (!value || typeof value !== "object") return false;
+	const candidate = value as Partial<BrandType>;
+	return Boolean(
+		candidate.color?.brand?.primary?.hex &&
+			candidate.color?.brand?.secondary?.hex &&
+			candidate.color?.brand?.accent?.hex,
+	);
+};
+
 export default function BrandMockupsPage() {
 	const [brandData, setBrandData] = useState<BrandType>(mockCocaColaBrandType);
 	const [isLoaded, setIsLoaded] = useState(false);
@@ -561,8 +571,13 @@ export default function BrandMockupsPage() {
 		const storedData = localStorage.getItem("generatedBrandType");
 		if (storedData) {
 			try {
-				const parsed = JSON.parse(storedData) as BrandType;
-				setBrandData(parsed);
+				const parsed = JSON.parse(storedData) as unknown;
+				if (isValidBrandType(parsed)) {
+					setBrandData(parsed);
+				} else {
+					setError("Brand data is missing required colors. Regenerate first.");
+					setBrandData(mockCocaColaBrandType);
+				}
 			} catch {
 				setBrandData(mockCocaColaBrandType);
 			}
@@ -581,8 +596,8 @@ export default function BrandMockupsPage() {
 	}, [mergedData]);
 
 	const brandFont =
-		mergedData.typography.titleFont?.name ??
-		mergedData.typography.scale.display.large.fontFamily ??
+		mergedData?.typography?.titleFont?.name ??
+		mergedData?.typography?.scale?.display?.large?.fontFamily ??
 		"Space Grotesk";
 
 	const themeVars: CSSProperties = {
@@ -689,7 +704,7 @@ export default function BrandMockupsPage() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					brand: {
-						meta: { brandName: mergedData.meta.brandName },
+						meta: { brandName: mergedData?.meta?.brandName ?? "Brand" },
 						color: {
 							brand: {
 								primary: { hex: brandPalette.primary },
@@ -698,8 +713,8 @@ export default function BrandMockupsPage() {
 							},
 						},
 						typography: {
-							titleFont: mergedData.typography.titleFont,
-							bodyFont: mergedData.typography.bodyFont,
+							titleFont: mergedData?.typography?.titleFont,
+							bodyFont: mergedData?.typography?.bodyFont,
 							scale: {
 								display: {
 									large: {
@@ -746,7 +761,7 @@ export default function BrandMockupsPage() {
 	const downloadImage = (url: string, index: number) => {
 		const link = document.createElement("a");
 		link.href = url;
-		link.download = `${mergedData.meta.brandName}-mockup-${index + 1}.png`;
+		link.download = `${mergedData?.meta?.brandName ?? "brand"}-mockup-${index + 1}.png`;
 		document.body.appendChild(link);
 		link.click();
 		link.remove();
@@ -802,7 +817,7 @@ export default function BrandMockupsPage() {
 								className="mt-1 text-xl font-bold text-slate-900"
 								style={{ fontFamily: "var(--brand-font)" }}
 							>
-								{mergedData.meta.brandName}
+								{mergedData?.meta?.brandName ?? "Brand"}
 							</h2>
 							<p className="mt-2 text-xs leading-relaxed text-slate-600 line-clamp-2">
 								{mergedData.brandOverview?.mission ||
@@ -1079,7 +1094,7 @@ export default function BrandMockupsPage() {
 									))}
 								</div>
 								<span className="text-xs font-medium text-slate-600">
-									{mergedData.meta.brandName}
+									{mergedData?.meta?.brandName ?? "Brand"}
 								</span>
 							</div>
 						</div>

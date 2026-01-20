@@ -2,6 +2,7 @@ import type { Agent } from "@openai/agents";
 // AGENT_IMPORTS_START
 import { createAnalysisAgent } from "./agents/analysis";
 import { createApplicationsAgent } from "./agents/applications";
+import { createBrandTypeAgent } from "./agents/brand-type";
 import { createBrandEditorAgent } from "./agents/brand-editor";
 import { createColorAgent } from "./agents/color";
 import { createCopywritingAgent } from "./agents/copywriting";
@@ -35,6 +36,7 @@ export const agentIds = [
 	"copywriting",
 	"applications",
 	"brand-editor",
+	"brand-type",
 	// AGENT_ID_END
 ] as const;
 
@@ -57,6 +59,7 @@ const registry: Record<AgentId, AgentFactory> = {
 	copywriting: createCopywritingAgent,
 	applications: createApplicationsAgent,
 	"brand-editor": createBrandEditorAgent,
+	"brand-type": createBrandTypeAgent,
 	// AGENT_REGISTRY_END
 };
 

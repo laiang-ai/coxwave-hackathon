@@ -29,7 +29,7 @@ Google Fonts나 Adobe Fonts에서 사용 가능한 폰트를 추천하세요.
 
 중요: 모든 응답은 반드시 한국어로 작성하세요.
 응답은 반드시 지정된 JSON 형식으로 제공하세요.`,
-	model: "gpt-5.2",
+	model: "gpt-4.1-mini",
 	modelSettings: {
 		temperature: 0.3,
 	},

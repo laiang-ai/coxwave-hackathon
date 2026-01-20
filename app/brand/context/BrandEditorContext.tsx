@@ -263,27 +263,29 @@ export function BrandEditorProvider({
 			let filename: string;
 			let mimeType: string;
 
+			const brandName = brandData.mergedData?.meta?.brandName ?? "brand";
+
 			switch (format) {
 				case "json":
 					content = JSON.stringify(brandData.mergedData, null, 2);
-					filename = `${brandData.mergedData.meta.brandName}-brand.json`;
+					filename = `${brandName}-brand.json`;
 					mimeType = "application/json";
 					break;
 				case "overrides":
 					content = JSON.stringify(brandData.overrides, null, 2);
-					filename = `${brandData.mergedData.meta.brandName}-overrides.json`;
+					filename = `${brandName}-overrides.json`;
 					mimeType = "application/json";
 					break;
 				case "css":
 					// TODO: Implement CSS export
 					content = "/* CSS export not yet implemented */";
-					filename = `${brandData.mergedData.meta.brandName}-variables.css`;
+					filename = `${brandName}-variables.css`;
 					mimeType = "text/css";
 					break;
 				case "tailwind":
 					// TODO: Implement Tailwind export
 					content = "// Tailwind export not yet implemented";
-					filename = `${brandData.mergedData.meta.brandName}-tailwind.config.js`;
+					filename = `${brandName}-tailwind.config.js`;
 					mimeType = "text/javascript";
 					break;
 			}

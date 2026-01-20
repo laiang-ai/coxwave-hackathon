@@ -45,10 +45,18 @@ type FormData = {
 	formalityLevel: "formal" | "professional" | "casual" | "friendly" | "";
 };
 
+type RawData = {
+	logoAnalysis?: unknown;
+	marketContext?: unknown;
+	identity?: unknown;
+	guideline?: unknown;
+	[key: string]: unknown;
+};
+
 type GenerationState =
 	| { status: "idle" }
-	| { status: "generating"; phase: string; message: string }
-	| { status: "complete"; brandTypeJson: string }
+	| { status: "generating"; phase: string; message: string; rawData: RawData }
+	| { status: "complete"; brandTypeJson: string; rawData: RawData }
 	| { status: "error"; error: string };
 
 // ============================================
@@ -94,6 +102,7 @@ const readFileAsDataUrl = (file: File): Promise<string> =>
 // Component
 // ============================================
 export default function BrandGuidelinePage() {
+	console.log("[Client] BrandGuidelinePage component rendering");
 	const router = useRouter();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -129,6 +138,7 @@ export default function BrandGuidelinePage() {
 
 	// Load from localStorage on mount
 	useEffect(() => {
+		console.log("[Client] useEffect: Component mounted");
 		if (typeof window === "undefined") return;
 		try {
 			const storedForm = localStorage.getItem(FORM_STORAGE_KEY);
@@ -268,12 +278,14 @@ export default function BrandGuidelinePage() {
 	// Generation
 	// ============================================
 	const handleGenerate = useCallback(async () => {
+		console.log("[Client] handleGenerate called, canGenerate:", canGenerate);
 		if (!canGenerate) return;
 
 		setGenerationState({
 			status: "generating",
 			phase: "starting",
 			message: "시작 중...",
+			rawData: {},
 		});
 
 		try {
@@ -328,15 +340,33 @@ export default function BrandGuidelinePage() {
 				throw new Error("Generation failed");
 			}
 
+			console.log("[Client] Fetch response received, status:", response.status);
+
 			const reader = response.body.getReader();
 			const decoder = new TextDecoder();
 			let buffer = ""; // 불완전한 청크를 버퍼링
 
+			console.log("[Client] Starting to read SSE stream...");
+
 			while (true) {
 				const { value, done } = await reader.read();
-				if (done) break;
+				console.log(
+					"[Client] Read chunk, done:",
+					done,
+					"value length:",
+					value?.length,
+				);
+				if (done) {
+					console.log("[Client] Stream done, buffer length:", buffer.length);
+					if (buffer.length > 0) {
+						console.log("[Client] Remaining buffer:", buffer.slice(0, 500));
+					}
+					break;
+				}
 
-				buffer += decoder.decode(value, { stream: true });
+				const chunk = decoder.decode(value, { stream: true });
+				console.log("[Client] Chunk preview:", chunk.slice(0, 150));
+				buffer += chunk;
 				const lines = buffer.split("\n");
 				// 마지막 라인은 불완전할 수 있으므로 버퍼에 유지
 				buffer = lines.pop() || "";
@@ -346,18 +376,40 @@ export default function BrandGuidelinePage() {
 						const data = line.slice(6);
 						try {
 							const event = JSON.parse(data) as WorkflowEvent;
+							console.log("[Client] Event type:", event.type);
 
 							if (event.type === "phase-start") {
-								setGenerationState({
+								setGenerationState((prev) => ({
 									status: "generating",
 									phase: event.phase,
 									message: event.message,
-								});
+									rawData: prev.status === "generating" ? prev.rawData : {},
+								}));
 							} else if (event.type === "agent-start") {
-								setGenerationState({
+								setGenerationState((prev) => ({
 									status: "generating",
 									phase: event.agent,
 									message: event.message,
+									rawData: prev.status === "generating" ? prev.rawData : {},
+								}));
+							} else if (event.type === "agent-data") {
+								// Raw data 수신 - agent 이름에 따라 적절한 필드에 저장
+								setGenerationState((prev) => {
+									if (prev.status !== "generating") return prev;
+									const agentToField: Record<string, string> = {
+										vision: "logoAnalysis",
+										analysis: "marketContext",
+										identity: "identity",
+										guideline: "guideline",
+									};
+									const field = agentToField[event.agent] ?? event.agent;
+									return {
+										...prev,
+										rawData: {
+											...prev.rawData,
+											[field]: event.data,
+										},
+									};
 								});
 							} else if (event.type === "complete") {
 								// Store in localStorage and redirect
@@ -373,52 +425,111 @@ export default function BrandGuidelinePage() {
 									"generatedBrandType",
 									JSON.stringify(brandType),
 								);
-								setGenerationState({
+
+								// Store raw models for future use
+								const eventData = event.data as Record<string, unknown>;
+								const rawModels = {
+									identity: eventData.identity,
+									guideline: eventData.guideline,
+									marketContext: eventData.marketContext,
+									logoAsset: eventData.logoAsset,
+									generatedAt: new Date().toISOString(),
+								};
+								localStorage.setItem(
+									"generatedBrandModels",
+									JSON.stringify(rawModels),
+								);
+
+								setGenerationState((prev) => ({
 									status: "complete",
 									brandTypeJson: JSON.stringify(brandType),
-								});
+									rawData: prev.status === "generating" ? prev.rawData : {
+										identity: eventData.identity,
+										guideline: eventData.guideline,
+										marketContext: eventData.marketContext,
+									},
+								}));
 
-								console.log("[Client] Redirecting to /brand");
-								router.push("/brand");
+								// 자동 리디렉션 제거 - 사용자가 raw data 확인 후 수동 이동
+								console.log("[Client] Complete - raw data displayed");
 							} else if (event.type === "error") {
 								setGenerationState({ status: "error", error: event.error });
 							}
 						} catch (parseError) {
-							console.warn("[Client] JSON parse error:", parseError);
+							console.warn(
+								"[Client] JSON parse error:",
+								parseError,
+								"Data preview:",
+								data.slice(0, 200),
+							);
 						}
 					}
 				}
 			}
 
-			// 남은 버퍼 처리
-			if (buffer.startsWith("data: ")) {
-				const data = buffer.slice(6);
-				try {
-					const event = JSON.parse(data) as WorkflowEvent;
-					if (event.type === "complete") {
-						console.log("[Client] Complete event received (from buffer)");
-						const brandType = (event.data as Record<string, unknown>).brandType;
-						console.log(
-							"[Client] brandType:",
-							brandType ? "exists" : "missing",
-						);
+			// 남은 버퍼 처리 - 모든 라인 처리
+			console.log(
+				"[Client] Processing remaining buffer, length:",
+				buffer.length,
+			);
+			const remainingLines = buffer.split("\n");
+			for (const line of remainingLines) {
+				if (line.startsWith("data: ")) {
+					const data = line.slice(6);
+					try {
+						const event = JSON.parse(data) as WorkflowEvent;
+						console.log("[Client] Buffer event type:", event.type);
+						if (event.type === "complete") {
+							console.log("[Client] Complete event received (from buffer)");
+							const brandType = (event.data as Record<string, unknown>)
+								.brandType;
+							console.log(
+								"[Client] brandType:",
+								brandType ? "exists" : "missing",
+							);
 
-						localStorage.setItem(
-							"generatedBrandType",
-							JSON.stringify(brandType),
-						);
-						setGenerationState({
-							status: "complete",
-							brandTypeJson: JSON.stringify(brandType),
-						});
+							localStorage.setItem(
+								"generatedBrandType",
+								JSON.stringify(brandType),
+							);
 
-						console.log("[Client] Redirecting to /brand");
-						router.push("/brand");
-					} else if (event.type === "error") {
-						setGenerationState({ status: "error", error: event.error });
+							// Store raw models for future use
+							const eventData = event.data as Record<string, unknown>;
+							const rawModels = {
+								identity: eventData.identity,
+								guideline: eventData.guideline,
+								marketContext: eventData.marketContext,
+								logoAsset: eventData.logoAsset,
+								generatedAt: new Date().toISOString(),
+							};
+							localStorage.setItem(
+								"generatedBrandModels",
+								JSON.stringify(rawModels),
+							);
+
+							setGenerationState((prev) => ({
+								status: "complete",
+								brandTypeJson: JSON.stringify(brandType),
+								rawData: prev.status === "generating" ? prev.rawData : {
+									identity: eventData.identity,
+									guideline: eventData.guideline,
+									marketContext: eventData.marketContext,
+								},
+							}));
+
+							// 자동 리디렉션 제거 - 사용자가 raw data 확인 후 수동 이동
+							console.log("[Client] Complete - raw data displayed (from buffer)");
+						} else if (event.type === "error") {
+							setGenerationState({ status: "error", error: event.error });
+						}
+					} catch (parseError) {
+						console.warn(
+							"[Client] Buffer parse error:",
+							parseError,
+							"Data preview:",
+							data.slice(0, 200),
+						);
 					}
-				} catch (parseError) {
-					console.warn("[Client] Buffer parse error:", parseError);
 				}
 			}
 		} catch (error) {
@@ -777,6 +888,61 @@ export default function BrandGuidelinePage() {
 		</div>
 	);
 
+	const renderRawData = (rawData: RawData) => {
+		const labelMap: Record<string, string> = {
+			logoAnalysis: "Logo Analysis (Vision)",
+			marketContext: "Market Context (Analysis)",
+			identity: "Identity Model",
+			guideline: "Guideline Model",
+			vision: "Vision",
+			analysis: "Analysis",
+			"logo-guide": "Logo Guide",
+			color: "Color",
+			typography: "Typography",
+			tone: "Tone",
+			visual: "Visual",
+			"design-standards": "Design Standards",
+		};
+		const orderedKeys = [
+			"logoAnalysis",
+			"marketContext",
+			"identity",
+			"guideline",
+		];
+		const displayKeys = [
+			...orderedKeys.filter((key) => rawData[key] !== undefined),
+			...Object.keys(rawData)
+				.filter((key) => !orderedKeys.includes(key))
+				.sort(),
+		];
+
+		return (
+			<div className="mt-6 w-full space-y-3">
+				<p className="text-sm font-medium text-default">Raw Data</p>
+				<div className="max-h-80 overflow-y-auto rounded-lg border border-default bg-surface p-3">
+					{displayKeys.map((key) => {
+						const data = rawData[key];
+						if (data === undefined) return null;
+						const label = labelMap[key] ?? key;
+						return (
+							<div key={key} className="mb-4 last:mb-0">
+								<p className="mb-1 text-xs font-semibold text-secondary">
+									[{label}]
+								</p>
+								<pre className="whitespace-pre-wrap break-all text-xs text-default">
+									{JSON.stringify(data, null, 2)}
+								</pre>
+							</div>
+						);
+					})}
+					{displayKeys.length === 0 && (
+						<p className="text-xs text-secondary">데이터 수신 대기 중...</p>
+					)}
+				</div>
+			</div>
+		);
+	};
+
 	const renderGenerating = () => (
 		<div className="flex flex-col items-center gap-6 py-12">
 			<div className="flex size-16 items-center justify-center rounded-full bg-surface-secondary">
@@ -823,6 +989,17 @@ export default function BrandGuidelinePage() {
 					</Badge>
 				))}
 			</div>
+			{generationState.status === "generating" &&
+				renderRawData(generationState.rawData)}
+			<Button
+				color="secondary"
+				variant="soft"
+				size="sm"
+				className="mt-4"
+				onClick={() => router.push("/brand")}
+			>
+				결과 페이지로 이동 (수동)
+			</Button>
 		</div>
 	);
 
@@ -836,6 +1013,42 @@ export default function BrandGuidelinePage() {
 				<div className="relative mx-auto max-w-2xl">
 					<div className="rounded-3xl border border-default bg-surface-elevated p-8 shadow-xl">
 						{renderGenerating()}
+					</div>
+				</div>
+			</main>
+		);
+	}
+
+	if (generationState.status === "complete") {
+		return (
+			<main className="relative min-h-screen overflow-hidden px-4 py-10 sm:px-6 lg:px-10">
+				<div className="pointer-events-none absolute inset-0">
+					<div className="absolute -right-32 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(14,116,144,0.35),_transparent_65%)] blur-3xl" />
+					<div className="absolute -bottom-40 left-10 h-96 w-96 rounded-full bg-[radial-gradient(circle,_rgba(250,204,21,0.25),_transparent_70%)] blur-3xl" />
+				</div>
+				<div className="relative mx-auto max-w-2xl">
+					<div className="rounded-3xl border border-default bg-surface-elevated p-8 shadow-xl">
+						<div className="flex flex-col items-center gap-6 py-12">
+							<div className="flex size-16 items-center justify-center rounded-full bg-success-soft">
+								<Check className="size-8 text-success" />
+							</div>
+							<div className="text-center">
+								<p className="text-lg font-medium text-default">
+									브랜드 가이드라인 생성 완료!
+								</p>
+								<p className="mt-2 text-sm text-secondary">
+									Raw 데이터가 localStorage에 저장되었습니다.
+								</p>
+							</div>
+							{renderRawData(generationState.rawData)}
+							<Button
+								color="info"
+								size="sm"
+								onClick={() => router.push("/brand")}
+							>
+								결과 페이지로 이동
+							</Button>
+						</div>
 					</div>
 				</div>
 			</main>

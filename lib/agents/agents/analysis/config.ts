@@ -15,7 +15,7 @@ export const analysisConfig: AgentOptions = {
 
 중요: 모든 응답은 반드시 한국어로 작성하세요.
 응답은 반드시 프롬프트에서 지정한 JSON 구조를 따르세요. 별도 형식이 없으면 간결한 문단으로 답하세요.`,
-	model: "gpt-5.2",
+	model: "gpt-4.1-mini",
 	modelSettings: {
 		temperature: 0.3,
 	},

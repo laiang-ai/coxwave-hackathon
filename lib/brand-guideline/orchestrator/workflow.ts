@@ -5,6 +5,7 @@ import {
 	createLogContext,
 	logWorkflowEvent,
 	logValidationError,
+	logGeneratedData,
 	type WorkflowLogContext,
 } from "./logger";
 import { createAnalysisAgent } from "@/lib/agents/agents/analysis";
@@ -192,6 +193,7 @@ export type WorkflowEvent =
 	| { type: "phase-complete"; phase: WorkflowPhase; message: string }
 	| { type: "agent-start"; agent: string; message: string }
 	| { type: "agent-complete"; agent: string; message: string }
+	| { type: "agent-data"; agent: string; data: unknown }
 	| {
 			type: "complete";
 			data: {
@@ -1020,6 +1022,22 @@ export async function* runBrandWorkflow(
 		logWorkflowEvent(visionComplete, logCtx);
 		yield visionComplete;
 
+		// Vision agent raw data 전송
+		const visionData: WorkflowEvent = {
+			type: "agent-data",
+			agent: "vision",
+			data: logoAnalysis,
+		};
+		yield visionData;
+
+		// 로고 분석 데이터 로깅
+		logGeneratedData(logCtx, "Logo Analysis (Vision)", logoAnalysis, {
+			style: logoAnalysis.style,
+			colors: logoAnalysis.colors,
+			mood: logoAnalysis.mood,
+			shapes: logoAnalysis.shapes,
+		});
+
 		const analysisAgentComplete: WorkflowEvent = {
 			type: "agent-complete",
 			agent: "analysis",
@@ -1027,6 +1045,21 @@ export async function* runBrandWorkflow(
 		};
 		logWorkflowEvent(analysisAgentComplete, logCtx);
 		yield analysisAgentComplete;
+
+		// Analysis agent raw data 전송
+		const analysisData: WorkflowEvent = {
+			type: "agent-data",
+			agent: "analysis",
+			data: marketContext,
+		};
+		yield analysisData;
+
+		// 시장 분석 데이터 로깅
+		logGeneratedData(logCtx, "Market Context (Analysis)", marketContext, {
+			industryOverview: marketContext.industryOverview,
+			trends: marketContext.categoryTrends,
+			opportunities: marketContext.opportunityAreas,
+		});
 
 		const analysisPhaseComplete: WorkflowEvent = {
 			type: "phase-complete",
@@ -1064,6 +1097,25 @@ export async function* runBrandWorkflow(
 		};
 		logWorkflowEvent(identityAgentComplete, logCtx);
 		yield identityAgentComplete;
+
+		// Identity agent raw data 전송
+		const identityData: WorkflowEvent = {
+			type: "agent-data",
+			agent: "identity",
+			data: identity,
+		};
+		yield identityData;
+
+		// 브랜드 아이덴티티 데이터 로깅
+		logGeneratedData(logCtx, "Brand Identity", identity, {
+			brandName: identity.brand.name,
+			tagline: identity.brand.tagline,
+			mission: identity.philosophy.mission,
+			vision: identity.philosophy.vision,
+			archetypes: identity.personality.archetypes,
+			traits: identity.personality.traits,
+			positioning: identity.positioning.differentiator,
+		});
 
 		const identityPhaseComplete: WorkflowEvent = {
 			type: "phase-complete",
@@ -1112,12 +1164,43 @@ export async function* runBrandWorkflow(
 			yield agentComplete;
 		}
 
-		const guideline: GuidelineModel = GuidelineModelSchema.parse({
-			id: generateId(),
-			identityId: identity.id,
-			createdAt: new Date().toISOString(),
-			...guidelinePartial,
-		});
+		console.log("[Workflow] Creating guideline model...");
+		let guideline: GuidelineModel;
+		try {
+			guideline = GuidelineModelSchema.parse({
+				id: generateId(),
+				identityId: identity.id,
+				createdAt: new Date().toISOString(),
+				...guidelinePartial,
+			});
+			console.log("[Workflow] Guideline model created successfully");
+
+			// 가이드라인 데이터 로깅
+			logGeneratedData(logCtx, "Brand Guideline", guideline, {
+				logoDescription: guideline.logo.description,
+				primaryColors: guideline.color.primary.map(
+					(c) => `${c.name}: ${c.hex}`,
+				),
+				typographyFamily: guideline.typography.primary.family,
+				typographyDirection: guideline.typography.direction,
+				toneOverview: guideline.tone.overview,
+				imageryStyle: guideline.visual.imagery.style,
+			});
+
+			// Guideline raw data 전송
+			const guidelineData: WorkflowEvent = {
+				type: "agent-data",
+				agent: "guideline",
+				data: guideline,
+			};
+			yield guidelineData;
+		} catch (parseError) {
+			console.error(
+				"[Workflow] GuidelineModelSchema.parse failed:",
+				parseError,
+			);
+			throw parseError;
+		}
 
 		const guidelinesPhaseComplete: WorkflowEvent = {
 			type: "phase-complete",
@@ -1129,6 +1212,7 @@ export async function* runBrandWorkflow(
 
 		// Phase 5 (Content Generation)는 Mockup Studio에서 별도 실행
 		// Phase 4 완료 후 바로 complete 이벤트 발생
+		console.log("[Workflow] Creating complete event...");
 		const completeEvent: WorkflowEvent = {
 			type: "complete",
 			data: {
@@ -1138,8 +1222,15 @@ export async function* runBrandWorkflow(
 				marketContext,
 			},
 		};
-		logWorkflowEvent(completeEvent, logCtx);
+		console.log("[Workflow] Logging complete event...");
+		try {
+			logWorkflowEvent(completeEvent, logCtx);
+		} catch (logError) {
+			console.error("[Workflow] logWorkflowEvent failed:", logError);
+		}
+		console.log("[Workflow] Yielding complete event...");
 		yield completeEvent;
+		console.log("[Workflow] Complete event yielded successfully");
 	} catch (error) {
 		const errorEvent: WorkflowEvent = {
 			type: "error",

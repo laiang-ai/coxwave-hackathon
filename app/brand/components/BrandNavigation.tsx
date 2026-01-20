@@ -40,7 +40,7 @@ export function BrandNavigation({
 		{ id: "templates", label: "Templates", icon: Files },
 	];
 
-	const brandBrandColor = brandData.color.brand.primary.hex;
+	const brandBrandColor = brandData?.color?.brand?.primary?.hex ?? "#3b82f6";
 
 	return (
 		<nav className="flex h-screen w-[280px] shrink-0 flex-col border-r border-slate-200/60 bg-white/60 backdrop-blur-2xl">
@@ -68,10 +68,10 @@ export function BrandNavigation({
 						className="text-xl font-bold text-slate-900"
 						style={{ fontFamily: "var(--brand-font)" }}
 					>
-						{brandData.meta.brandName}
+						{brandData?.meta?.brandName ?? "Brand"}
 					</h1>
 					<div className="flex items-center gap-2 text-xs text-slate-500">
-						<span className="opacity-60">v{brandData.meta.version}</span>
+						<span className="opacity-60">v{brandData?.meta?.version ?? "1.0"}</span>
 						<span className="opacity-30">•</span>
 						<span className="opacity-60">Exhibition Edition</span>
 					</div>
