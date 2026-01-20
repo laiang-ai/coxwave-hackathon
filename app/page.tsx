@@ -368,78 +368,154 @@ export default function Home() {
 	};
 
 	return (
-		<main className="relative min-h-screen overflow-hidden px-4 py-10 sm:px-6 lg:px-10">
-			<div className="pointer-events-none absolute inset-0">
-				<div className="absolute -right-32 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(14,116,144,0.35),_transparent_65%)] blur-3xl" />
-				<div className="absolute -bottom-40 left-10 h-96 w-96 rounded-full bg-[radial-gradient(circle,_rgba(250,204,21,0.25),_transparent_70%)] blur-3xl" />
-				<div className="absolute left-1/2 top-1/3 h-64 w-64 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(37,99,235,0.2),_transparent_70%)] blur-3xl" />
+		<main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-neutral-50 via-white to-neutral-50">
+			{/* Background decorations */}
+			<div className="pointer-events-none absolute inset-0 overflow-hidden">
+				<div className="absolute -right-40 -top-40 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-neutral-300/30 via-neutral-400/20 to-transparent blur-3xl" />
+				<div className="absolute -bottom-32 -left-32 h-[400px] w-100 rounded-full bg-gradient-to-tr from-neutral-300/25 via-neutral-200/15 to-transparent blur-3xl" />
+				<div className="absolute left-1/2 top-1/4 h-[300px] w-[300px] -translate-x-1/2 rounded-full bg-gradient-to-b from-neutral-200/20 to-transparent blur-3xl" />
+				{/* Grid pattern overlay */}
+				<div
+					className="absolute inset-0 opacity-[0.02]"
+					style={{
+						backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+					}}
+				/>
 			</div>
-			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-10">
-				<section className="motion-fade-up flex flex-col gap-6">
-					<div className="flex flex-wrap items-center gap-4">
-						<div className="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 via-blue-600 to-amber-400 text-lg font-semibold text-white shadow-lg shadow-blue-500/20">
-							CW
+
+			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-16 px-4 py-16 sm:px-6 lg:px-10">
+				{/* Hero Section */}
+				<section className="flex flex-col items-center gap-8 text-center">
+					{/* Logo and Badge */}
+					<div className="motion-fade-up flex flex-col items-center gap-5">
+						<div className="flex items-center gap-2">
+							<svg
+								width="28"
+								height="28"
+								viewBox="0 0 28 28"
+								fill="none"
+								role="img"
+								aria-label="Brandkit"
+							>
+								<circle cx="14" cy="14" r="14" fill="#171717" />
+							</svg>
+							<span className="text-xl font-bold tracking-tight text-neutral-900">
+								Brandkit
+							</span>
 						</div>
-						<div className="space-y-1">
-							<div className="flex flex-wrap items-center gap-3">
-								<p className="text-xs uppercase tracking-[0.4em] text-secondary">
-									Brand Kit Studio
-								</p>
-								<Badge variant="soft" color="info">
-									BI → Product
-								</Badge>
-							</div>
-							<p className="text-sm text-secondary">
-								로고와 한 줄 설명만 있으면 브랜드 가이드라인부터 제품 방향까지
-								바로 이어집니다.
-							</p>
+						<div className="flex items-center gap-3">
+							<span className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-400">
+								브랜드 가이드라인 스튜디오
+							</span>
+							<Badge variant="outline" color="secondary" size="sm">
+								BI → Product
+							</Badge>
 						</div>
 					</div>
-					<div className="max-w-3xl space-y-4">
-						<h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight text-default sm:text-6xl">
-							BI에서 Product까지,
-							<br />한 번에 시작하세요.
+
+					{/* Main headline */}
+					<div
+						className="motion-fade-up max-w-4xl space-y-6"
+						style={{ animationDelay: "0.1s" }}
+					>
+						<h1 className="text-balance text-5xl font-bold leading-[1.1] tracking-tight text-neutral-900 sm:text-6xl lg:text-7xl">
+							로고 하나로 시작하는
+							<br />
+							<span className="text-neutral-600">브랜드 가이드라인</span>
 						</h1>
-						<p className="text-lg text-secondary">
-							로고 업로드 → 한 줄 쿼리 → 바로 인사이트. 브랜드 정체성을 제품
-							경험으로 연결하는 가장 빠른 시작점입니다.
+						<p className="mx-auto max-w-2xl text-lg leading-relaxed text-neutral-500 sm:text-xl">
+							로고를 업로드하고 한 줄 설명만 입력하세요.
+							<br className="hidden sm:block" />
+							AI가 브랜드 정체성을 분석하고 완성된 가이드라인을 제안합니다.
 						</p>
 					</div>
-					<div className="flex flex-wrap gap-3">
+
+					{/* CTA Buttons */}
+					<div
+						className="motion-fade-up flex flex-wrap items-center justify-center gap-4"
+						style={{ animationDelay: "0.2s" }}
+					>
 						<Button
-							color="primary"
-							size="sm"
+							color="secondary"
+							size="md"
 							type="button"
 							onClick={() => fileInputRef.current?.click()}
+							className="bg-neutral-900 text-white shadow-lg shadow-neutral-900/25 transition-all hover:bg-black hover:shadow-xl hover:shadow-neutral-900/30"
 						>
 							<Paperclip className="size-4" />
 							로고 업로드
 						</Button>
 						<Button
 							color="secondary"
-							variant="soft"
-							size="sm"
+							variant="outline"
+							size="md"
 							type="button"
 							onClick={() =>
 								setInput("BI에서 Product까지 연결되는 브랜드 방향을 제안해줘.")
 							}
+							className="border-neutral-300 text-neutral-700 hover:bg-neutral-100"
 						>
-							샘플 쿼리 넣기
+							샘플 쿼리로 시작
+							<ArrowRight className="size-4" />
 						</Button>
+					</div>
+
+					{/* Trust indicators */}
+					<div
+						className="motion-fade-up flex items-center gap-6 text-xs text-neutral-400"
+						style={{ animationDelay: "0.3s" }}
+					>
+						<span className="flex items-center gap-1.5">
+							<span className="size-1.5 rounded-full bg-neutral-800" />
+							실시간 AI 분석
+						</span>
+						<span className="flex items-center gap-1.5">
+							<span className="size-1.5 rounded-full bg-neutral-600" />
+							JSON 내보내기
+						</span>
+						<span className="flex items-center gap-1.5">
+							<span className="size-1.5 rounded-full bg-neutral-400" />
+							즉시 편집 가능
+						</span>
 					</div>
 				</section>
 
-				<section className="rounded-3xl border border-default bg-surface-elevated shadow-xl">
-					<div className="flex flex-col gap-6 p-5 sm:p-6">
-						<div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-[0.3em] text-secondary">
-							<span>Brand Chat Studio</span>
-							<div className="flex items-center gap-2 text-xs text-secondary">
-								{isStreaming ? (
-									<LoadingDots className="text-secondary" />
-								) : null}
-								<span>{isStreaming ? "Streaming reply" : "Ready"}</span>
-								<Badge size="sm" variant="outline">
-									gpt-5.2
+				{/* Chat Section */}
+				<section className="overflow-hidden rounded-3xl border border-neutral-200 bg-white/80 shadow-2xl shadow-neutral-200/50 backdrop-blur-xl">
+					{/* Chat Header */}
+					<div className="border-b border-neutral-100 bg-gradient-to-r from-neutral-50/80 to-white/80 px-6 py-4">
+						<div className="flex flex-wrap items-center justify-between gap-3">
+							<div className="flex items-center gap-3">
+								<div className="flex size-8 items-center justify-center rounded-lg bg-neutral-900">
+									<Chat className="size-4 text-white" />
+								</div>
+								<div>
+									<h2 className="text-sm font-semibold text-neutral-800">
+										브랜드 채팅
+									</h2>
+									<p className="text-xs text-neutral-400">
+										AI 기반 브랜드 분석
+									</p>
+								</div>
+							</div>
+							<div className="flex items-center gap-3">
+								<div className="flex items-center gap-2">
+									{isStreaming ? (
+										<>
+											<LoadingDots className="text-neutral-600" />
+											<span className="text-xs text-neutral-600">
+												분석 중...
+											</span>
+										</>
+									) : (
+										<>
+											<span className="size-2 rounded-full bg-neutral-800" />
+											<span className="text-xs text-neutral-500">준비됨</span>
+										</>
+									)}
+								</div>
+								<Badge size="sm" variant="outline" color="secondary">
+									GPT-5.2
 								</Badge>
 								{messages.length > 0 && (
 									<Button
@@ -455,37 +531,38 @@ export default function Home() {
 								)}
 							</div>
 						</div>
+					</div>
 
+					<div className="flex flex-col gap-6 p-5 sm:p-6">
 						<div
 							ref={scrollRef}
 							className="max-h-[58vh] space-y-4 overflow-y-auto pr-2"
 						>
 							{messages.length === 0 ? (
-								<div className="flex flex-col gap-4 rounded-2xl border border-dashed border-subtle bg-surface px-6 py-8 text-sm text-secondary">
-									<div className="flex items-center gap-3 text-default">
-										<div className="flex size-10 items-center justify-center rounded-2xl bg-surface-secondary">
-											<Chat className="size-5" />
-										</div>
-										<div className="space-y-1">
-											<p className="text-base font-semibold text-default">
-												로고와 질문을 올려주세요
-											</p>
-											<p className="text-sm text-secondary">
-												BI의 핵심을 정리하고, 바로 제품 경험으로 이어주는 답을
-												받아보세요.
-											</p>
-										</div>
+								<div className="flex flex-col items-center gap-6 rounded-2xl border border-dashed border-neutral-200 bg-gradient-to-b from-neutral-50/50 to-white px-8 py-12 text-center">
+									<div className="flex size-16 items-center justify-center rounded-2xl bg-neutral-100">
+										<Chat className="size-7 text-neutral-600" />
 									</div>
-									<div className="flex flex-wrap gap-3">
+									<div className="max-w-md space-y-2">
+										<h3 className="text-lg font-semibold text-neutral-800">
+											브랜드 분석을 시작해보세요
+										</h3>
+										<p className="text-sm leading-relaxed text-neutral-500">
+											로고를 업로드하고 브랜드에 대해 질문하세요.
+											<br />
+											AI가 브랜드 정체성을 분석하고 가이드라인을 제안합니다.
+										</p>
+									</div>
+									<div className="flex flex-wrap justify-center gap-3">
 										<Button
 											color="secondary"
-											variant="soft"
 											size="sm"
 											onClick={() => fileInputRef.current?.click()}
 											type="button"
+											className="bg-neutral-900 text-white hover:bg-black"
 										>
 											<Paperclip className="size-4" />
-											로고 첨부
+											로고 업로드
 										</Button>
 										<Button
 											color="secondary"
@@ -497,8 +574,9 @@ export default function Home() {
 													"우리 브랜드 BI를 제품 UX로 확장하는 방향을 제안해줘.",
 												)
 											}
+											className="border-neutral-300 hover:bg-neutral-100"
 										>
-											쿼리 예시 보기
+											예시 쿼리 사용
 										</Button>
 									</div>
 								</div>
@@ -524,14 +602,12 @@ export default function Home() {
 											<div
 												className={`flex max-w-[75%] flex-col gap-3 rounded-2xl px-4 py-3 text-sm shadow-sm ${
 													isUser
-														? "bg-primary-solid text-inverse"
+														? "border border-default bg-transparent text-default"
 														: "border border-default bg-surface text-default"
 												}`}
 											>
 												<div
-													className={`text-[11px] uppercase tracking-[0.2em] ${
-														isUser ? "text-inverse" : "text-secondary"
-													}`}
+													className="text-[11px] uppercase tracking-[0.2em] text-secondary"
 												>
 													{isUser ? "You" : "Assistant"}
 												</div>
@@ -611,91 +687,96 @@ export default function Home() {
 							)}
 						</div>
 
-						<div className="rounded-2xl border border-subtle bg-surface px-4 py-3">
-							<div className="flex flex-wrap items-center justify-between gap-3 text-xs text-secondary">
-								<span>Shift + Enter for a new line</span>
-								<span>
-									{canSend ? "Ready to send" : "로고 또는 쿼리를 입력"}
-								</span>
-							</div>
-						</div>
-
-						<div className="rounded-2xl border border-default bg-surface p-4">
-							<div className="flex flex-col gap-4">
-								{attachments.length > 0 ? (
-									<div className="flex flex-wrap gap-3">
-										{attachments.map((item) => (
-											<div
-												key={item.id}
-												className="group relative h-20 w-24 overflow-hidden rounded-xl border border-subtle bg-surface-secondary"
+						{/* Input Area */}
+						<div className="space-y-4 rounded-2xl border border-neutral-200 bg-neutral-50/50 p-4">
+							{/* Attachments preview */}
+							{attachments.length > 0 && (
+								<div className="flex flex-wrap gap-3">
+									{attachments.map((item) => (
+										<div
+											key={item.id}
+											className="group relative h-20 w-24 overflow-hidden rounded-xl border-2 border-neutral-300 bg-white shadow-sm transition-all hover:border-neutral-400"
+										>
+											<Image
+												src={item.dataUrl}
+												alt={item.name}
+												className="h-full w-full object-cover"
+											/>
+											<Button
+												color="secondary"
+												variant="solid"
+												size="xs"
+												uniform
+												className="absolute right-1 top-1 bg-neutral-800 opacity-0 shadow-lg transition hover:bg-black group-hover:opacity-100"
+												type="button"
+												aria-label="Remove attachment"
+												onClick={() => removeAttachment(item.id)}
 											>
-												<Image
-													src={item.dataUrl}
-													alt={item.name}
-													className="h-full w-full object-cover"
-												/>
-												<Button
-													color="danger"
-													variant="solid"
-													size="xs"
-													uniform
-													className="absolute right-2 top-2 opacity-0 transition group-hover:opacity-100"
-													type="button"
-													aria-label="Remove attachment"
-													onClick={() => removeAttachment(item.id)}
-												>
-													<X className="size-3" />
-												</Button>
+												<X className="size-3" />
+											</Button>
+											<div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1">
+												<span className="text-[10px] font-medium text-white">
+													로고
+												</span>
 											</div>
-										))}
-									</div>
-								) : null}
-
-								<div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-									<div className="flex-1">
-										<Textarea
-											value={input}
-											onChange={(event) => setInput(event.target.value)}
-											onKeyDown={handleKeyDown}
-											onCompositionStart={() => setIsComposing(true)}
-											onCompositionEnd={() => setIsComposing(false)}
-											placeholder="로고를 업로드하고 브랜드 한 줄 정의를 적어주세요."
-											rows={3}
-											autoResize
-											className="w-full"
-										/>
-									</div>
-									<div className="flex flex-col gap-2 sm:flex-row">
-										<input
-											ref={fileInputRef}
-											type="file"
-											accept="image/*"
-											multiple
-											onChange={handlePickImages}
-											className="hidden"
-										/>
-										<Button
-											color="secondary"
-											variant="soft"
-											size="sm"
-											type="button"
-											onClick={() => fileInputRef.current?.click()}
-										>
-											<Paperclip className="size-4" />
-											로고 추가
-										</Button>
-										<Button
-											color="primary"
-											size="sm"
-											type="button"
-											onClick={sendMessage}
-											disabled={!canSend}
-										>
-											<ArrowUp className="size-4" />
-											Send
-										</Button>
-									</div>
+										</div>
+									))}
 								</div>
+							)}
+
+							{/* Input row */}
+							<div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+								<div className="flex-1">
+									<Textarea
+										value={input}
+										onChange={(event) => setInput(event.target.value)}
+										onKeyDown={handleKeyDown}
+										onCompositionStart={() => setIsComposing(true)}
+										onCompositionEnd={() => setIsComposing(false)}
+										placeholder="브랜드에 대해 설명해주세요. 예: 우리는 친환경 라이프스타일 브랜드입니다."
+										rows={2}
+										autoResize
+										className="w-full rounded-xl border-neutral-200 bg-white shadow-sm focus:border-neutral-400 focus:ring-neutral-200"
+									/>
+								</div>
+								<div className="flex shrink-0 gap-2">
+									<input
+										ref={fileInputRef}
+										type="file"
+										accept="image/*"
+										multiple
+										onChange={handlePickImages}
+										className="hidden"
+									/>
+									<Button
+										color="secondary"
+										variant="outline"
+										size="sm"
+										type="button"
+										onClick={() => fileInputRef.current?.click()}
+										className="border-neutral-300 hover:bg-neutral-100"
+									>
+										<Paperclip className="size-4" />
+										<span className="hidden sm:inline">로고</span>
+									</Button>
+									<Button
+										color="secondary"
+										size="sm"
+										type="button"
+										onClick={sendMessage}
+										disabled={!canSend}
+										className="bg-neutral-900 text-white shadow-md shadow-neutral-900/20 hover:bg-black disabled:bg-neutral-300"
+									>
+										<ArrowUp className="size-4" />
+										전송
+									</Button>
+								</div>
+							</div>
+
+							{/* Helper text */}
+							<div className="flex items-center justify-between text-[11px] text-neutral-400">
+								<span>Shift + Enter로 줄바꿈</span>
+								<span>{canSend ? "전송 준비됨" : "메시지를 입력하세요"}</span>
 							</div>
 						</div>
 					</div>
