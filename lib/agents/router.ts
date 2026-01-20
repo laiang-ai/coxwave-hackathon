@@ -44,6 +44,17 @@ const brandEditorKeywords = [
 	"update",
 	"바꿔",
 	"바꾸기",
+	"primary",
+	"secondary",
+	"accent",
+	"밝게",
+	"어둡게",
+	"darker",
+	"lighter",
+	"hex",
+	"rgb",
+	"가이드라인",
+	"guideline",
 ];
 
 type UserMessageItem = Extract<AgentInputItem, { role: "user" }>;

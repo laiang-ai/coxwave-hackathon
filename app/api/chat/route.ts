@@ -214,16 +214,63 @@ export async function POST(req: Request) {
 	const result = await run(agent, messages, { stream: true });
 	const encoder = new TextEncoder();
 
+	// Track tool execution results for brand updates
+	const brandUpdates: Array<{ path: string; value: any; reason?: string }> = [];
+	let fullContent = "";
+
 	const stream = new ReadableStream({
 		async start(controller) {
 			try {
 				for await (const event of result) {
+					// Debug: log all events to understand structure
+					console.log("Event type:", event.type, "Data:", JSON.stringify(event.data || {}));
+
+					// Stream text deltas to client
 					if (
 						event.type === "raw_model_stream_event" &&
 						event.data?.type === "output_text_delta"
 					) {
-						controller.enqueue(encoder.encode(event.data.delta ?? ""));
+						const delta = event.data.delta ?? "";
+						fullContent += delta;
+						const chunk = JSON.stringify({ content: delta }) + "\n";
+						controller.enqueue(encoder.encode(`data: ${chunk}`));
 					}
+
+					// Capture tool calls - try multiple event types
+					if (
+						(event.type === "tool_call" ||
+						 event.type === "tool_call_started" ||
+						 event.type === "raw_tool_call") &&
+						event.data?.name === "update_brand_property"
+					) {
+						console.log("Tool call detected:", event.data);
+						const args = event.data.arguments || event.data.args || {};
+						const { path, newValue, reason } = args;
+						if (path && newValue !== undefined) {
+							brandUpdates.push({ path, value: newValue, reason });
+							console.log("Brand update added:", { path, value: newValue, reason });
+						}
+					}
+
+					// Also try capturing from tool results
+					if (event.type === "tool_result" && event.data?.tool_name === "update_brand_property") {
+						console.log("Tool result detected:", event.data);
+						try {
+							const result = JSON.parse(event.data.result || "{}");
+							if (result.path && result.newValue !== undefined) {
+								brandUpdates.push({ path: result.path, value: result.newValue, reason: result.reason });
+								console.log("Brand update from result:", { path: result.path, value: result.newValue });
+							}
+						} catch (e) {
+							console.error("Failed to parse tool result:", e);
+						}
+					}
+				}
+
+				// Send final updates array after streaming completes
+				if (brandUpdates.length > 0) {
+					const finalChunk = JSON.stringify({ updates: brandUpdates }) + "\n";
+					controller.enqueue(encoder.encode(`data: ${finalChunk}`));
 				}
 			} catch (error) {
 				console.error("Chat stream error:", error);
