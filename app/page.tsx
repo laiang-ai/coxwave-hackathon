@@ -9,6 +9,7 @@ import {
 	Chat,
 	OpenaiLogoRegular,
 	Paperclip,
+	Trash,
 	User,
 	X,
 } from "@openai/apps-sdk-ui/components/Icon";
@@ -110,6 +111,11 @@ export default function Home() {
 	useEffect(() => {
 		saveMessages(messages);
 	}, [messages, saveMessages]);
+
+	const clearChat = useCallback(() => {
+		setMessages([]);
+		localStorage.removeItem(STORAGE_KEY);
+	}, []);
 
 	const canSend = useMemo(
 		() => !isStreaming && (input.trim().length > 0 || attachments.length > 0),
@@ -434,6 +440,18 @@ export default function Home() {
 								<Badge size="sm" variant="outline">
 									gpt-5.2
 								</Badge>
+								{messages.length > 0 && (
+									<Button
+										color="secondary"
+										variant="ghost"
+										size="xs"
+										type="button"
+										onClick={clearChat}
+										aria-label="채팅 초기화"
+									>
+										<Trash className="size-4" />
+									</Button>
+								)}
 							</div>
 						</div>
 
