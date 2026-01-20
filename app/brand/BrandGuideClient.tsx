@@ -4,12 +4,34 @@ import type { CSSProperties } from "react";
 import { useCallback, useMemo, useState } from "react";
 import LogoSection from "./LogoSection";
 import type { BrandType, ThemeColors } from "./types";
+import { BrandEditorProvider, useBrandEditor } from "./context/BrandEditorContext";
+import { PropertyInspector } from "./components/PropertyInspector";
+import { SectionWrapper } from "./components/sections/SectionWrapper";
+import { BrandOverviewSection } from "./components/sections/BrandOverviewSection";
+import { ToneOfVoiceSection } from "./components/sections/ToneOfVoiceSection";
 
 const formatDate = (value: string) => {
-	const date = new Date(value);
-	if (Number.isNaN(date.getTime())) return value;
-	const pad = (num: number) => String(num).padStart(2, "0");
-	return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}`;
+	try {
+		// Use a consistent format to avoid hydration mismatch
+		const date = new Date(value);
+		if (Number.isNaN(date.getTime())) return value;
+
+		// Use UTC to ensure consistent server/client rendering
+		const year = date.getUTCFullYear();
+		const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+		const day = String(date.getUTCDate()).padStart(2, "0");
+
+		return `${year}.${month}.${day}`;
+	} catch {
+		return value;
+	}
+};
+
+// Simple client-side ID generator to avoid any potential SSR issues
+let messageIdCounter = 0;
+const generateMessageId = () => {
+	messageIdCounter += 1;
+	return `msg-${Date.now()}-${messageIdCounter}`;
 };
 
 type ChatMessage = {
@@ -75,9 +97,15 @@ const buildTheme = (data: BrandType, overrides: Overrides): ThemeColors => ({
 	},
 });
 
-export default function BrandGuideClient({ data }: { data: BrandType }) {
+// Inner component that uses the context
+function BrandGuideClientInner() {
+	const editor = useBrandEditor();
+	const data = editor.mergedData;
+
 	const { brandName, version, createdAt } = data.meta;
 	const { logo, color, typography } = data;
+
+	// Legacy state for backward compatibility with current UI
 	const [overrides, setOverrides] = useState<Overrides>({});
 	const [chatInput, setChatInput] = useState("");
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -145,7 +173,7 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 		if (!input) return;
 
 		const nextMessages: ChatMessage[] = [
-			{ id: crypto.randomUUID(), role: "user", text: input },
+			{ id: generateMessageId(), role: "user", text: input },
 		];
 
 		const command = parseCommand(input);
@@ -154,7 +182,7 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 				const hex = resolveHex(command.value);
 				if (!hex) {
 					nextMessages.push({
-						id: crypto.randomUUID(),
+						id: generateMessageId(),
 						role: "assistant",
 						text: "HEX는 #RRGGBB 형식으로 입력해줘.",
 					});
@@ -169,7 +197,7 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 				}));
 
 				nextMessages.push({
-					id: crypto.randomUUID(),
+					id: generateMessageId(),
 					role: "assistant",
 					text: `${command.target} 컬러를 ${hex}로 업데이트했어.`,
 				});
@@ -178,7 +206,7 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 			if (command.type === "font") {
 				setOverrides((prev) => ({ ...prev, fontFamily: command.value }));
 				nextMessages.push({
-					id: crypto.randomUUID(),
+					id: generateMessageId(),
 					role: "assistant",
 					text: `타이틀 폰트를 ${command.value}로 변경했어.`,
 				});
@@ -186,7 +214,7 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 		} else if (target === "font") {
 			setOverrides((prev) => ({ ...prev, fontFamily: input }));
 			nextMessages.push({
-				id: crypto.randomUUID(),
+				id: generateMessageId(),
 				role: "assistant",
 				text: `타이틀 폰트를 ${input}로 변경했어.`,
 			});
@@ -194,7 +222,7 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 			const hex = resolveHex(input);
 			if (!hex) {
 				nextMessages.push({
-					id: crypto.randomUUID(),
+					id: generateMessageId(),
 					role: "assistant",
 					text: "HEX는 #RRGGBB 형식으로 입력해줘.",
 				});
@@ -205,7 +233,7 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 
 			setOverrides((prev) => ({ ...prev, [target]: hex }));
 			nextMessages.push({
-				id: crypto.randomUUID(),
+				id: generateMessageId(),
 				role: "assistant",
 				text: `${target} 컬러를 ${hex}로 업데이트했어.`,
 			});
@@ -328,6 +356,24 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 
 				<LogoSection logo={logo} theme={theme} />
 
+				{/* NEW: Brand Overview Section */}
+				{data.brandOverview && (
+					<BrandOverviewSection
+						data={data.brandOverview}
+						cardStyle={cardStyle}
+						mutedCardStyle={mutedCardStyle}
+					/>
+				)}
+
+				{/* NEW: Tone of Voice Section */}
+				{data.toneOfVoice && (
+					<ToneOfVoiceSection
+						data={data.toneOfVoice}
+						cardStyle={cardStyle}
+						mutedCardStyle={mutedCardStyle}
+					/>
+				)}
+
 				<section className="snap-start">
 					<div className="mx-auto flex min-h-[65vh] max-w-6xl items-center px-4 py-10">
 						<div
@@ -449,28 +495,31 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 							<div className="space-y-5">
 								<div className="grid gap-4 md:grid-cols-3">
 									{[
-										{ ...color.brand.primary, hex: theme.brand.primary },
-										{ ...color.brand.secondary, hex: theme.brand.secondary },
-										{ ...color.brand.accent, hex: theme.brand.accent },
+										{ ...color.brand.primary, hex: theme.brand.primary, path: "color.brand.primary.hex" },
+										{ ...color.brand.secondary, hex: theme.brand.secondary, path: "color.brand.secondary.hex" },
+										{ ...color.brand.accent, hex: theme.brand.accent, path: "color.brand.accent.hex" },
 									].map((swatch) => (
-										<div
+										<SectionWrapper
 											key={swatch.name}
-											className="border p-4"
-											style={cardStyle}
+											path={swatch.path}
+											editable={true}
+											className="border p-4 rounded-lg transition-all hover:shadow-md"
 										>
-											<div
-												className="h-28"
-												style={{ backgroundColor: swatch.hex }}
-											/>
-											<div className="mt-3 text-sm text-[color:var(--fg-secondary)]">
-												<p className="font-medium text-[color:var(--fg-primary)]">
-													{swatch.name}
-												</p>
-												<p className="text-xs uppercase tracking-[0.2em] text-[color:var(--fg-muted)]">
-													{swatch.hex}
-												</p>
+											<div style={cardStyle}>
+												<div
+													className="h-28 rounded-lg"
+													style={{ backgroundColor: swatch.hex }}
+												/>
+												<div className="mt-3 text-sm text-[color:var(--fg-secondary)]">
+													<p className="font-medium text-[color:var(--fg-primary)]">
+														{swatch.name}
+													</p>
+													<p className="text-xs uppercase tracking-[0.2em] text-[color:var(--fg-muted)]">
+														{swatch.hex}
+													</p>
+												</div>
 											</div>
-										</div>
+										</SectionWrapper>
 									))}
 								</div>
 
@@ -769,6 +818,18 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 					</div>
 				</div>
 			</div>
+
+			{/* Property Inspector */}
+			<PropertyInspector />
 		</main>
+	);
+}
+
+// Main component with Provider wrapper
+export default function BrandGuideClient({ data }: { data: BrandType }) {
+	return (
+		<BrandEditorProvider initialData={data}>
+			<BrandGuideClientInner />
+		</BrandEditorProvider>
 	);
 }

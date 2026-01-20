@@ -19,6 +19,32 @@ const visionKeywords = [
 	"스샷",
 	"screenshot",
 ];
+const brandEditorKeywords = [
+	"브랜드",
+	"brand",
+	"색상",
+	"color",
+	"컬러",
+	"폰트",
+	"font",
+	"타이포그래피",
+	"typography",
+	"로고",
+	"logo",
+	"디자인",
+	"design",
+	"미션",
+	"mission",
+	"비전",
+	"vision",
+	"변경",
+	"수정",
+	"edit",
+	"change",
+	"update",
+	"바꿔",
+	"바꾸기",
+];
 
 type UserMessageItem = Extract<AgentInputItem, { role: "user" }>;
 
@@ -86,6 +112,13 @@ export const routeAgent = (
 		return {
 			decision: { agentId: "planner", reason: "planning_keyword" },
 			agent: getAgent("planner"),
+		};
+	}
+
+	if (matchesKeyword(text, brandEditorKeywords)) {
+		return {
+			decision: { agentId: "brand-editor", reason: "brand_editing_keyword" },
+			agent: getAgent("brand-editor"),
 		};
 	}
 

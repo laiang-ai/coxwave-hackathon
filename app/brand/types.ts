@@ -124,6 +124,45 @@ export type BrandType = {
 			adjustments?: Record<string, number>;
 		}>;
 	};
+	// NEW: Extended sections for comprehensive brand guide
+	brandOverview?: {
+		mission?: string;
+		vision?: string;
+		values?: string[];
+		personality?: {
+			traits: Array<{ name: string; description: string }>;
+			archetype?: string;
+		};
+	};
+	toneOfVoice?: {
+		traits?: Array<{
+			name: string;
+			spectrum: [string, string]; // e.g., ["Formal", "Casual"]
+			value: number; // 0-100
+			description?: string;
+		}>;
+		examples?: Array<{
+			scenario: string;
+			good: string;
+			bad?: string;
+		}>;
+		guidelines?: string[];
+	};
+	visualElements?: {
+		icons?: {
+			style: string;
+			library?: string;
+			guidelines: string[];
+		};
+		patterns?: {
+			usage: string;
+			examples?: string[];
+		};
+		illustrations?: {
+			style: string;
+			examples?: string[];
+		};
+	};
 };
 
 export type ThemeColors = {
