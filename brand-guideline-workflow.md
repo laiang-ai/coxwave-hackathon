@@ -40,12 +40,12 @@
 │     ├─ Vision Statement / Brand Truths                              │
 │     ├─ Mission & Core Values                                        │
 │     ├─ Archetype & Personality                                      │
-│     └─ Core Brand Elements (Logo/Contour/Ribbon)                    │
+│     └─ Brand Architecture (Sub-brand/Product Line)                  │
 │                                                                     │
 │  3. IDENTITY STANDARDS                                              │
 │     ├─ Logo System (Lockups/Clear Space/Min Size)                   │
 │     ├─ Co-Branding & Legal Line                                     │
-│     └─ Contour Bottle / Dynamic Ribbon Usage                        │
+│     └─ Signature Elements (Pattern/Motif/App Icon)                  │
 │                                                                     │
 │  4. COLOR PALETTE                                                   │
 │     ├─ Swatch Cards (Name, HEX, CMYK, Pantone)                      │
@@ -55,12 +55,13 @@
 │     └─ Type hierarchy + live copy preview                           │
 │                                                                     │
 │  6. TONE OF VOICE                                                   │
-│  7. DESIGN STANDARDS (Packaging/Signage/Fleet/Promotions)            │
+│  7. DESIGN STANDARDS (Digital/Packaging/Signage/Fleet/Promotions)    │
 │  8. VISUAL ELEMENTS                                                 │
 │  9. APPLICATIONS                                                    │
+│ 10. GOVERNANCE & LEGAL                                              │
 │                                                                     │
 │  WEB TEMPLATE MAP                                                   │
-│  / (Intro) /vision /identity /logo /colors /typography /standards    │
+│  / (Intro) /vision /architecture /identity /logo /colors /typography /standards /governance │
 │  - fullpage section scroll or chapter scroll                        │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -92,7 +93,8 @@ PHASE 1: 입력 수집 (Input Collection)
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  사용자 입력                                                               │
 │  ─────────────────────────────────────────────────────────────────────────│
-│  • 로고 이미지 (필수)                                                     │
+│  • 대표 로고 이미지 (필수)                                                │
+│  • 서브 로고/앱 아이콘/서비스 로고 (선택)                                  │
 │  • 브랜드명                                                                │
 │  • 한줄 정의 (브랜드를 한 문장으로 설명)                                   │
 │  • 산업/카테고리                                                           │
@@ -111,7 +113,7 @@ PHASE 1.5: 로고 에셋 처리 (Logo Asset Processing)
 │  • 로고 업로드 저장                                                         │
 │  • 포맷/해상도 메타데이터 추출                                              │
 │                                                                             │
-│  OUTPUT: LogoAsset (url, format, width, height)                             │
+│  OUTPUT: LogoAsset[] (url, format, width, height, type)                      │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
@@ -140,6 +142,7 @@ PHASE 3: Identity Model 생성
 │  ├─ Brand Core (미션, 비전, 가치)                                          │
 │  ├─ Brand Personality (성격, 아키타입)                                     │
 │  ├─ Positioning (포지셔닝, 차별점, 약속)                                   │
+│  ├─ Brand Architecture (서브브랜드/제품 라인)                              │
 │  ├─ Target Audience (타겟 상세 프로파일)                                   │
 │  └─ Voice Foundation (톤 기초)                                             │
 │                                                                             │
@@ -147,19 +150,19 @@ PHASE 3: Identity Model 생성
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
-PHASE 4: Guideline Model 생성 (6개 에이전트 병렬)
+PHASE 4: Guideline Model 생성 (7개 에이전트 병렬)
 ────────────────────────────────────────────────────────────────────────────────
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  INPUT: IdentityModel                                                       │
 │  ─────────────────────────────────────────────────────────────────────────│
 │                                                                             │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌───────────┐ ┌─────────┐ ┌──────────┐ │
-│  │    LOGO     │ │   COLOR     │ │    TYPO     │ │   TONE    │ │  VISUAL │ │  DESIGN  │ │
-│  │   AGENT     │ │   AGENT     │ │   AGENT     │ │   AGENT   │ │  AGENT  │ │  STDS    │ │
-│  └──────┬──────┘ └──────┬──────┘ └──────┬──────┘ └─────┬─────┘ └────┬────┘ └────┬─────┘ │
-│         │               │               │              │            │           │       │
-│         ▼               ▼               ▼              ▼            ▼           ▼       │
-│    LogoGuideline   ColorSystem    Typography      ToneOfVoice   VisualElem  DesignStd  │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌───────────┐ ┌─────────┐ ┌──────────┐ ┌────────────┐ │
+│  │    LOGO     │ │   COLOR     │ │    TYPO     │ │   TONE    │ │  VISUAL │ │  DESIGN  │ │ GOVERNANCE │ │
+│  │   AGENT     │ │   AGENT     │ │   AGENT     │ │   AGENT   │ │  AGENT  │ │  STDS    │ │   AGENT    │ │
+│  └──────┬──────┘ └──────┬──────┘ └──────┬──────┘ └─────┬─────┘ └────┬────┘ └────┬─────┘ └────┬───────┘ │
+│         │               │               │              │            │           │           │         │
+│         ▼               ▼               ▼              ▼            ▼           ▼           ▼         │
+│    LogoGuideline   ColorSystem    Typography      ToneOfVoice   VisualElem  DesignStd  Governance     │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 
@@ -200,13 +203,14 @@ PHASE 6: 문서 통합 (Document Merge)
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  MERGER                                                                     │
 │  ─────────────────────────────────────────────────────────────────────────│
-│  INPUT: LogoAsset + IdentityModel + GuidelineModel                          │
+│  INPUT: LogoAsset[] + IdentityModel + GuidelineModel                        │
 │         + CopywritingContent + ApplicationsContent                          │
 │                                                                             │
 │  OUTPUT: BrandGuidelineDocument {                                           │
 │    cover,                                                                   │
 │    brandVision,                                                             │
 │    brandOverview,                                                           │
+│    brandArchitecture,                                                       │
 │    identityStandards,                                                       │
 │    colorSystem,                                                             │
 │    typography,                                                              │
@@ -214,7 +218,8 @@ PHASE 6: 문서 통합 (Document Merge)
 │    copywriting,                                                             │
 │    visualElements,                                                          │
 │    designStandards,                                                         │
-│    applications                                                             │
+│    applications,                                                            │
+│    governance                                                               │
 │  }                                                                          │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
@@ -238,7 +243,7 @@ UserInput
     │
     ├───────────────┬──────────────────────┐
     ▼               ▼                      ▼
- LogoAsset     LogoAnalysis           MarketContext
+ LogoAsset[]   LogoAnalysis           MarketContext
     │               │                      │
     └───────────────┴──────────┬───────────┘
                                │
@@ -277,9 +282,10 @@ CopywritingContent     ApplicationsContent
 ## 검수 기준
 
 - 모든 섹션이 모델에 매핑되고, 비어 있는 섹션은 "해당 없음"으로 명시
-- 브랜드 비전/아이덴티티/디자인 스탠더드 섹션이 누락 없이 포함
+- 브랜드 비전/아이덴티티/디자인 스탠더드/거버넌스 섹션이 누락 없이 포함
 - 톤/컬러/타이포/카피가 IdentityModel 성격 및 톤 키워드와 일관
 - 로고 섹션이 필수 항목으로 포함됨
+- 브랜드 아키텍처(서브브랜드/제품 라인) 정보가 있으면 문서에 반영됨
 - 내보내기 결과에 템플릿 누락/빈칸 없음
 
 ---
@@ -294,16 +300,22 @@ interface UserInput {
   brandName: string; // 브랜드명 (1-50자)
   industry: string; // 산업/카테고리
   oneLiner: string; // 한줄 정의 (10-200자)
-  logo: File; // 로고 이미지 (PNG, JPG, SVG / 최대 5MB, 업로드 후 logoUrl 생성)
+  logo: File; // 대표 로고 이미지 (PNG, JPG, SVG / 최대 5MB, 업로드 후 logoUrl 생성)
 
   // 선택 입력 (권장)
   keywords?: string[]; // 핵심 키워드 (3-5개)
   targetAudience?: string; // 타겟 오디언스 설명
   toneReference?: ToneOption[]; // 톤 레퍼런스 선택
+  logoAssets?: {
+    type: "symbol" | "wordmark" | "lockup" | "service" | "appIcon" | "productBadge" | "other";
+    file: File;
+    description?: string;
+  }[]; // 서브 로고/앱 아이콘/서비스 로고 등
 
   // 선택 입력 (상세)
   vision?: string; // 비전
   mission?: string; // 미션
+  brandArchitectureNote?: string; // 서브브랜드/제품 라인 구조 메모
   prohibitedExpressions?: string[]; // 금지 표현
   additionalContext?: string; // 추가 컨텍스트
 
@@ -337,11 +349,13 @@ type ToneOption =
 | 1    | industry                    | select       | ✓    | 미리 정의된 목록 + 직접 입력 |
 | 1    | oneLiner                    | textarea     | ✓    | 10-200자                     |
 | 1    | logo                        | file         | -    | PNG/JPG/SVG, max 5MB         |
+| 1    | logoAssets                  | file (multi) | -    | PNG/JPG/SVG, max 5MB         |
 | 2    | keywords                    | tag-input    | -    | 3-5개                        |
 | 2    | toneReference               | multi-select | -    | 2-4개 선택                   |
 | 2    | targetAudience              | textarea     | -    | 자유 형식                    |
 | 3    | vision                      | textarea     | -    | max 300자                    |
 | 3    | mission                     | textarea     | -    | max 300자                    |
+| 3    | brandArchitectureNote       | textarea     | -    | max 300자                    |
 | 3    | prohibitedExpressions       | tag-input    | -    | max 10개                     |
 | 4    | preferences.colorMood       | radio        | -    | 6개 옵션                     |
 | 4    | preferences.typographyStyle | radio        | -    | 4개 옵션                     |
@@ -361,6 +375,8 @@ interface LogoAsset {
   format: 'png' | 'jpg' | 'svg';
   width: number;
   height: number;
+  type: "primary" | "symbol" | "wordmark" | "lockup" | "service" | "appIcon" | "productBadge" | "other";
+  variant?: string; // 예: 지역/캠페인/제품군
 }
 ```
 
@@ -433,6 +449,19 @@ interface IdentityModel {
     proof: string[];
   };
 
+  // 브랜드 아키텍처
+  brandArchitecture: {
+    structure: "monolithic" | "endorsed" | "house-of-brands" | "hybrid";
+    description: string;
+    subBrands?: {
+      name: string;
+      role: "product" | "service" | "initiative" | "region" | "partner";
+      description?: string;
+    }[];
+    namingRules?: string[];
+    lockupRules?: string[];
+  };
+
   // 타겟 오디언스
   targetAudience: {
     primary: {
@@ -496,21 +525,27 @@ interface GuidelineModel {
     donts: string[];
   };
 
-  // 브랜드 핵심 요소
-  brandElements: {
-    contourBottle: {
-      description: string;
-      usageRules: string[];
-      clearSpace?: string;
-      donts: string[];
+  // 브랜드 시그니처 요소
+  signatureElements?: {
+    name: string;
+    type:
+      | "pattern"
+      | "motif"
+      | "iconSet"
+      | "appIcon"
+      | "serviceLogo"
+      | "productBadge"
+      | "mascot"
+      | "other";
+    description: string;
+    usageRules: string[];
+    clearSpace?: string;
+    minimumSize?: {
+      print?: string;
+      digital?: string;
     };
-    dynamicRibbon: {
-      description: string;
-      spacingRules: string[];
-      lockupRules: string[];
-      donts: string[];
-    };
-  };
+    donts: string[];
+  }[];
 
   // 아이덴티티 스탠더드
   identityStandards: {
@@ -594,6 +629,13 @@ interface GuidelineModel {
 
   // 디자인 스탠더드
   designStandards: {
+    digital?: {
+      uiPrinciples: string[];
+      componentRules: string[];
+      iconRules: string[];
+      motionRules: string[];
+      appIconRules?: string[];
+    };
     packaging: {
       graphicRules: string[];
       formRules: string[];
@@ -611,6 +653,16 @@ interface GuidelineModel {
     customer: {
       rules: string[];
     };
+  };
+
+  // 거버넌스/법무/승인
+  governance: {
+    assetSource: string; // 공식 에셋 저장소/배포 경로
+    approvalRequired: boolean;
+    approverContacts: string[];
+    exceptionPolicy: string[];
+    legalNotes: string[];
+    trademarkUsage?: string[];
   };
 
   // 비주얼 요소
@@ -721,6 +773,103 @@ interface CopywritingContent {
 }
 ```
 
+#### 톤/카피 JSON 예시 (UI 파싱용)
+
+<!-- tone-copy-json:start -->
+```json
+{
+  "tone": {
+    "overview": "전문성을 유지하되 대화형으로 친근하게 설명한다.",
+    "principles": [
+      {
+        "name": "명확함",
+        "description": "짧은 문장으로 핵심부터 전달한다.",
+        "example": "3분 안에 브랜드 방향을 이해할 수 있게 하세요."
+      },
+      {
+        "name": "친근함",
+        "description": "전문 용어는 풀어서 설명한다.",
+        "example": "복잡한 기준도 쉽게 설명해 드립니다."
+      },
+      {
+        "name": "확신",
+        "description": "결과에 대한 자신감을 표현한다.",
+        "example": "당신의 브랜드가 일관성을 갖도록 설계합니다."
+      }
+    ],
+    "writingStyle": {
+      "characteristics": ["간결함", "명료함", "긍정적 톤"],
+      "rules": ["한 문장에 한 메시지", "지시형보다 제안형 표현 사용"]
+    },
+    "examples": [
+      {
+        "context": "온보딩 안내",
+        "do": [
+          {
+            "text": "로고와 핵심 키워드만 입력하면 초안을 생성합니다.",
+            "explanation": "사용자가 바로 이해할 수 있는 문장"
+          }
+        ],
+        "dont": [
+          {
+            "text": "시스템이 모든 산출물을 자동 생성합니다.",
+            "explanation": "과장된 표현"
+          }
+        ]
+      }
+    ],
+    "vocabulary": {
+      "preferred": ["브랜드 방향", "일관성", "초안"],
+      "avoided": ["완벽한 자동화", "무조건", "절대"]
+    }
+  },
+  "copywriting": {
+    "slogans": [
+      {
+        "text": "브랜드의 기준을 더 빠르게.",
+        "type": "primary",
+        "context": "서비스 메인 슬로건",
+        "rationale": "시간 절감과 기준 수립을 동시에 강조"
+      }
+    ],
+    "heroCopy": [
+      {
+        "headline": "브랜드 가이드라인을 하루 만에",
+        "subheadline": "로고와 핵심 정보만으로 첫 초안을 완성하세요.",
+        "bodyText": "팀 간 디자인 기준을 빠르게 정리해 반복 수정 시간을 줄입니다.",
+        "cta": "초안 생성하기",
+        "scenario": "랜딩 페이지 히어로"
+      }
+    ],
+    "channelMessages": [
+      {
+        "channel": "SNS",
+        "tone": "친근하고 자신감 있는 톤",
+        "examples": [
+          {
+            "type": "announcement",
+            "text": "브랜드 가이드라인, 이제 하루면 충분해요."
+          }
+        ]
+      }
+    ],
+    "boilerplate": {
+      "short": "브랜드 기준을 빠르게 설계하는 AI 가이드라인 도구.",
+      "medium": "로고와 핵심 정보를 입력하면 브랜드 가이드라인 초안을 생성해 디자인 기준을 빠르게 정리합니다.",
+      "long": "브랜드 아이덴티티, 톤, 디자인 원칙을 하나로 통합해 팀이 바로 사용할 수 있는 가이드라인 초안을 만듭니다."
+    },
+    "ctaExamples": [
+      {
+        "context": "메인 CTA",
+        "primary": "가이드라인 만들기",
+        "secondary": "샘플 보기"
+      }
+    ]
+  }
+}
+```
+<!-- tone-copy-json:end -->
+
 ### 6. ApplicationsContent (적용 예시)
 
 ```typescript
@@ -756,7 +905,7 @@ interface BrandGuidelineDocument {
     brandName: string;
     documentTitle?: string;
     tagline: string;
-    logoUrl: string; // LogoAsset.url
+    logoUrl: string; // LogoAsset(primary).url
     date: string;
   };
 
@@ -785,9 +934,13 @@ interface BrandGuidelineDocument {
           "visionStatement" | "brandTruths" | "categoryInsight" | "consumerInsight" | "targetDefinition"
         )[];
       };
+      brandArchitecture: {
+        layout: "two-column";
+        elements: ("structure" | "subBrands" | "namingRules" | "lockupRules")[];
+      };
       identityStandards: {
         layout: "stack";
-        elements: ("logo" | "contourBottle" | "dynamicRibbon" | "coBranding" | "legalLine")[];
+        elements: ("logo" | "signatureElements" | "coBranding" | "legalLine")[];
       };
       logo: {
         layout: "two-column";
@@ -813,7 +966,11 @@ interface BrandGuidelineDocument {
       };
       designStandards: {
         layout: "grid";
-        sections: ("packaging" | "signage" | "fleet" | "promotions" | "customer")[];
+        sections: ("digital" | "packaging" | "signage" | "fleet" | "promotions" | "customer")[];
+      };
+      governance: {
+        layout: "stack";
+        elements: ("assetSource" | "approvalRequired" | "exceptionPolicy" | "legalNotes")[];
       };
     };
     webTemplate: {
@@ -830,9 +987,10 @@ interface BrandGuidelineDocument {
       values: { name: string; description: string }[];
       personality: string;
     };
+    brandArchitecture: IdentityModel["brandArchitecture"];
     identityStandards: {
       logo: GuidelineModel["logo"];
-      brandElements: GuidelineModel["brandElements"];
+      signatureElements: GuidelineModel["signatureElements"];
       standards: GuidelineModel["identityStandards"];
     };
     colorSystem: GuidelineModel["color"];
@@ -842,6 +1000,7 @@ interface BrandGuidelineDocument {
     visualElements: GuidelineModel["visual"];
     designStandards: GuidelineModel["designStandards"];
     applications: ApplicationsContent["applications"];
+    governance: GuidelineModel["governance"];
   };
 
   sourceData: {
@@ -851,6 +1010,7 @@ interface BrandGuidelineDocument {
     applicationsContent: ApplicationsContent;
     marketContext: MarketContext;
     logoAsset: LogoAsset;
+    logoAssets?: LogoAsset[];
   };
 }
 
@@ -960,8 +1120,9 @@ const IDENTITY_AGENT_PROMPT = {
 2. 브랜드 비전: 비전 선언, 브랜드 진실, 카테고리/소비자 인사이트, 타겟 정의
 3. 브랜드 성격: 브랜드 아키타입 (1-2개), 성격 특성 (3-5개)
 4. 포지셔닝: 차별점, 브랜드 약속, 증거
-5. 타겟 오디언스: 상세 프로파일
-6. 보이스 기초: 톤 키워드 (3-5개), 포멀리티 수준
+5. 브랜드 아키텍처: 구조, 서브브랜드/제품 라인 규칙
+6. 타겟 오디언스: 상세 프로파일
+7. 보이스 기초: 톤 키워드 (3-5개), 포멀리티 수준
 
 JSON 형식으로 응답해주세요.`,
 };
@@ -1084,7 +1245,7 @@ JSON 형식으로 응답해주세요.`,
 ```typescript
 const DESIGN_STANDARDS_AGENT_PROMPT = {
   system: `당신은 브랜드 디자인 스탠더드를 정의하는 전문가입니다.
-패키징/사이니지/플릿/프로모션 등 적용 영역별 규칙을 정리합니다.`,
+디지털 제품/패키징/사이니지/플릿/프로모션 등 적용 영역별 규칙을 정리합니다.`,
 
   user: `다음 정보를 바탕으로 디자인 스탠더드를 작성해주세요.
 
@@ -1095,14 +1256,16 @@ const DESIGN_STANDARDS_AGENT_PROMPT = {
 {{guidelineModel}}
 
 ## 생성해야 할 항목
-1. 패키징 스탠더드 (Graphic / Form)
-2. 사이니지 스탠더드
-3. 플릿 스탠더드
-4. 프로모션/고객 접점 스탠더드
+1. 디지털 제품 스탠더드 (UI/컴포넌트/아이콘/모션/앱아이콘)
+2. 패키징 스탠더드 (Graphic / Form)
+3. 사이니지 스탠더드
+4. 플릿 스탠더드
+5. 프로모션/고객 접점 스탠더드
 
 JSON 형식으로 응답해주세요:
 {
   "designStandards": {
+    "digital": { "uiPrinciples": [], "componentRules": [], "iconRules": [], "motionRules": [], "appIconRules": [] },
     "packaging": { "graphicRules": [], "formRules": [], "templates": [] },
     "signage": { "rules": [] },
     "fleet": { "rules": [] },
@@ -1177,18 +1340,54 @@ JSON 형식으로 응답해주세요:
 };
 ```
 
+### 10. Governance Agent (거버넌스/법무/승인)
+
+```typescript
+const GOVERNANCE_AGENT_PROMPT = {
+  system: `당신은 브랜드 거버넌스와 법무 가이드라인을 정의하는 전문가입니다.
+승인 프로세스, 에셋 배포 경로, 예외 처리, 상표/법무 주의 사항을 정리합니다.`,
+
+  user: `다음 정보를 바탕으로 거버넌스 가이드라인을 작성해주세요.
+
+## 브랜드 아이덴티티
+{{identityModel}}
+
+## 가이드라인
+{{guidelineModel}}
+
+## 생성해야 할 항목
+1. 공식 에셋 저장소/배포 경로
+2. 승인 필요 여부 및 승인권자
+3. 예외 적용 정책 (기한/조건)
+4. 법무/상표 주의 사항
+
+JSON 형식으로 응답해주세요:
+{
+  "governance": {
+    "assetSource": "",
+    "approvalRequired": true,
+    "approverContacts": [],
+    "exceptionPolicy": [],
+    "legalNotes": [],
+    "trademarkUsage": []
+  }
+}`
+};
+```
+
 ---
 
 ## 문서 섹션 매핑
 
 | 최종 문서 섹션  | 데이터 소스                               |
 | --------------- | ----------------------------------------- |
-| 표지            | `brand.name`, `brand.tagline`, `LogoAsset.url` |
+| 표지            | `brand.name`, `brand.tagline`, `LogoAsset(primary).url` |
 | 브랜드 비전     | `IdentityModel.brandVision`               |
 | 미션/비전       | `philosophy.mission`, `philosophy.vision` |
 | 핵심 가치       | `philosophy.values`                       |
 | 브랜드 성격     | `personality`                             |
-| 아이덴티티 스탠더드 | `GuidelineModel.logo`, `GuidelineModel.brandElements`, `GuidelineModel.identityStandards` |
+| 브랜드 아키텍처 | `IdentityModel.brandArchitecture` |
+| 아이덴티티 스탠더드 | `GuidelineModel.logo`, `GuidelineModel.signatureElements`, `GuidelineModel.identityStandards` |
 | 컬러 시스템     | `GuidelineModel.color`                    |
 | 타이포그래피    | `GuidelineModel.typography`               |
 | 톤 오브 보이스  | `GuidelineModel.tone`                     |
@@ -1196,3 +1395,4 @@ JSON 형식으로 응답해주세요:
 | 카피라이팅 예시 | `CopywritingContent`                      |
 | 비주얼 요소     | `GuidelineModel.visual`                   |
 | 어플리케이션 예시 | `ApplicationsContent.applications`      |
+| 거버넌스/법무    | `GuidelineModel.governance`              |
