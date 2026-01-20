@@ -57,9 +57,24 @@ export type BrandType = {
 	};
 	color: {
 		brand: {
-			primary: { name: string; hex: string; scale: Record<string, string> };
-			secondary: { name: string; hex: string; scale: Record<string, string> };
-			accent: { name: string; hex: string };
+			primary: {
+				name: string;
+				hex: string;
+				rgb?: { r: number; g: number; b: number };
+				hsl?: { h: number; s: number; l: number };
+				scale: Record<string, string>;
+			};
+			secondary: {
+				name: string;
+				hex: string;
+				rgb?: { r: number; g: number; b: number };
+				scale: Record<string, string>;
+			};
+			accent: {
+				name: string;
+				hex: string;
+				rgb?: { r: number; g: number; b: number };
+			};
 		};
 		lightTheme: {
 			background: Record<string, string>;
@@ -75,6 +90,24 @@ export type BrandType = {
 		};
 	};
 	typography: {
+		titleFont?: {
+			name: string;
+			fallback: string[];
+			weights: number[];
+			source?: string;
+		};
+		bodyFont?: {
+			name: string;
+			fallback: string[];
+			weights: number[];
+			source?: string;
+		};
+		monoFont?: {
+			name: string;
+			fallback: string[];
+			weights: number[];
+			source?: string;
+		};
 		scale: {
 			display: Record<string, TypeScale>;
 			heading: Record<string, TypeScale>;
