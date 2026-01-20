@@ -1,6 +1,6 @@
 import { run } from "@openai/agents";
 import type { AgentId } from "@/lib/agents";
-import { listAgents, getAgent } from "@/lib/agents";
+import { getAgent, listAgents } from "@/lib/agents";
 import { routeAgent } from "@/lib/agents/router";
 
 type UserMessageItem = {

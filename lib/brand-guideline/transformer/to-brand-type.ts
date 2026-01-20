@@ -1,13 +1,13 @@
 import type {
-	BrandType,
 	LogoAsset as BrandLogoAsset,
+	BrandType,
 	TypeScale,
 } from "@/app/brand/types";
 import type {
-	IdentityModel,
-	GuidelineModel,
-	LogoAsset,
 	ColorSpec,
+	GuidelineModel,
+	IdentityModel,
+	LogoAsset,
 } from "../schemas";
 
 // ============================================

@@ -117,9 +117,7 @@ export function getVisibleSections(customization: {
 	const { sectionOrder, hiddenSections } = customization;
 
 	// Filter out hidden sections
-	const visible = sectionRegistry.filter(
-		(s) => !hiddenSections.includes(s.id),
-	);
+	const visible = sectionRegistry.filter((s) => !hiddenSections.includes(s.id));
 
 	// Sort by custom order if provided, otherwise by default order
 	return visible.sort((a, b) => {

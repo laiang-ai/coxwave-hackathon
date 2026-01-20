@@ -5,8 +5,8 @@ import path from "path";
 const [idArg, ...nameParts] = process.argv.slice(2);
 
 if (!idArg) {
-  console.log("Usage: node scripts/create-agent.mjs <agent-id> [Display Name]");
-  process.exit(1);
+	console.log("Usage: node scripts/create-agent.mjs <agent-id> [Display Name]");
+	process.exit(1);
 }
 
 const id = idArg.trim();
@@ -17,8 +17,8 @@ const pascalName = toPascalCase(id);
 const agentDir = path.join(root, "lib", "agents", "agents", id);
 
 if (fs.existsSync(agentDir)) {
-  console.error(`Agent folder already exists: ${agentDir}`);
-  process.exit(1);
+	console.error(`Agent folder already exists: ${agentDir}`);
+	process.exit(1);
 }
 
 fs.mkdirSync(agentDir, { recursive: true });
@@ -37,83 +37,83 @@ updateRegistry({ id });
 console.log(`Created agent '${id}' in ${agentDir}`);
 
 function updateRegistry({ id }) {
-  const registryPath = path.join(root, "lib", "agents", "registry.ts");
-  const contents = fs.readFileSync(registryPath, "utf8");
+	const registryPath = path.join(root, "lib", "agents", "registry.ts");
+	const contents = fs.readFileSync(registryPath, "utf8");
 
-  const importLine = `import { create${pascalName}Agent } from "./agents/${id}";`;
-  let next = insertBetweenMarkers(
-    contents,
-    "// AGENT_IMPORTS_START",
-    "// AGENT_IMPORTS_END",
-    importLine,
-  );
+	const importLine = `import { create${pascalName}Agent } from "./agents/${id}";`;
+	let next = insertBetweenMarkers(
+		contents,
+		"// AGENT_IMPORTS_START",
+		"// AGENT_IMPORTS_END",
+		importLine,
+	);
 
-  next = insertBetweenMarkers(
-    next,
-    "// AGENT_ID_START",
-    "// AGENT_ID_END",
-    `"${id}",`,
-  );
+	next = insertBetweenMarkers(
+		next,
+		"// AGENT_ID_START",
+		"// AGENT_ID_END",
+		`"${id}",`,
+	);
 
-  next = insertBetweenMarkers(
-    next,
-    "// AGENT_REGISTRY_START",
-    "// AGENT_REGISTRY_END",
-    `${id}: create${pascalName}Agent,`,
-  );
+	next = insertBetweenMarkers(
+		next,
+		"// AGENT_REGISTRY_START",
+		"// AGENT_REGISTRY_END",
+		`${id}: create${pascalName}Agent,`,
+	);
 
-  fs.writeFileSync(registryPath, next, "utf8");
+	fs.writeFileSync(registryPath, next, "utf8");
 }
 
 function insertBetweenMarkers(source, startMarker, endMarker, line) {
-  const startIndex = source.indexOf(startMarker);
-  const endIndex = source.indexOf(endMarker);
-  if (startIndex === -1 || endIndex === -1 || endIndex < startIndex) {
-    throw new Error(`Marker not found: ${startMarker} / ${endMarker}`);
-  }
+	const startIndex = source.indexOf(startMarker);
+	const endIndex = source.indexOf(endMarker);
+	if (startIndex === -1 || endIndex === -1 || endIndex < startIndex) {
+		throw new Error(`Marker not found: ${startMarker} / ${endMarker}`);
+	}
 
-  const before = source.slice(0, startIndex + startMarker.length);
-  const between = source.slice(startIndex + startMarker.length, endIndex);
-  const after = source.slice(endIndex);
+	const before = source.slice(0, startIndex + startMarker.length);
+	const between = source.slice(startIndex + startMarker.length, endIndex);
+	const after = source.slice(endIndex);
 
-  if (between.includes(line)) {
-    return source;
-  }
+	if (between.includes(line)) {
+		return source;
+	}
 
-  const indentation = between.match(/\n(\s*)[^\n]*$/)?.[1] ?? "\t";
-  const insertion = `\n${indentation}${line}`;
-  return `${before}${between}${insertion}${after}`;
+	const indentation = between.match(/\n(\s*)[^\n]*$/)?.[1] ?? "\t";
+	const insertion = `\n${indentation}${line}`;
+	return `${before}${between}${insertion}${after}`;
 }
 
 function toPascalCase(value) {
-  return value
-    .replace(/[^a-zA-Z0-9]+/g, " ")
-    .trim()
-    .split(" ")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join("");
+	return value
+		.replace(/[^a-zA-Z0-9]+/g, " ")
+		.trim()
+		.split(" ")
+		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+		.join("");
 }
 
 function toTitleCase(value) {
-  return value
-    .replace(/[-_]/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
+	return value
+		.replace(/[-_]/g, " ")
+		.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function toSafeCamelCase(value) {
-  const camel = value
-    .replace(/[^a-zA-Z0-9]+/g, " ")
-    .trim()
-    .split(" ")
-    .map((part, index) =>
-      index === 0
-        ? part.charAt(0).toLowerCase() + part.slice(1)
-        : part.charAt(0).toUpperCase() + part.slice(1),
-    )
-    .join("");
+	const camel = value
+		.replace(/[^a-zA-Z0-9]+/g, " ")
+		.trim()
+		.split(" ")
+		.map((part, index) =>
+			index === 0
+				? part.charAt(0).toLowerCase() + part.slice(1)
+				: part.charAt(0).toUpperCase() + part.slice(1),
+		)
+		.join("");
 
-  if (!camel || /^[0-9]/.test(camel)) {
-    return `agent${camel ? camel.charAt(0).toUpperCase() + camel.slice(1) : ""}`;
-  }
-  return camel;
+	if (!camel || /^[0-9]/.test(camel)) {
+		return `agent${camel ? camel.charAt(0).toUpperCase() + camel.slice(1) : ""}`;
+	}
+	return camel;
 }

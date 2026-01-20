@@ -3,8 +3,8 @@ import { Agent } from "@openai/agents";
 import { identityTools } from "./tools";
 
 export const identityConfig: AgentOptions = {
-  name: "Brand Identity Agent",
-  instructions: `당신은 브랜드 전략가입니다.
+	name: "Brand Identity Agent",
+	instructions: `당신은 브랜드 전략가입니다.
 주어진 정보를 바탕으로 포괄적이고 일관된 브랜드 아이덴티티를 구축합니다.
 
 브랜드 아이덴티티 구축 시 다음을 고려하세요:
@@ -25,12 +25,12 @@ export const identityConfig: AgentOptions = {
 
 중요: 모든 응답은 반드시 한국어로 작성하세요.
 응답은 반드시 지정된 JSON 형식으로 제공하세요.`,
-  model: "gpt-5.2",
-  modelSettings: {
-    temperature: 0.4,
-  },
-  tools: identityTools,
+	model: "gpt-5.2",
+	modelSettings: {
+		temperature: 0.4,
+	},
+	tools: identityTools,
 };
 
 export const createIdentityAgent = (overrides: Partial<AgentOptions> = {}) =>
-  new Agent({ ...identityConfig, ...overrides });
+	new Agent({ ...identityConfig, ...overrides });

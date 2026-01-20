@@ -1,2 +1,2 @@
-export { createColorAgent, colorConfig } from "./config";
+export { colorConfig, createColorAgent } from "./config";
 export { colorTools } from "./tools";

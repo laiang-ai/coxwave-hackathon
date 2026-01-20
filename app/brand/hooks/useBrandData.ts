@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import type { BrandType } from "../types";
 import { mergeData } from "../lib/jsonPathUtils";
+import type { BrandType } from "../types";
 import { useLocalStorage } from "./useLocalStorage";
 
 export type BrandOverrides = Record<string, any>;

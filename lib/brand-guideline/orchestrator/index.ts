@@ -1,5 +1,5 @@
 export {
 	runBrandWorkflow,
-	type WorkflowPhase,
 	type WorkflowEvent,
+	type WorkflowPhase,
 } from "./workflow";

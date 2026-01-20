@@ -3,8 +3,8 @@ import { Agent } from "@openai/agents";
 import { designStandardsTools } from "./tools";
 
 export const designStandardsConfig: AgentOptions = {
-  name: "Design Standards Agent",
-  instructions: `당신은 브랜드 디자인 스탠더드를 정의하는 전문가입니다.
+	name: "Design Standards Agent",
+	instructions: `당신은 브랜드 디자인 스탠더드를 정의하는 전문가입니다.
 패키징, 사이니지, 플릿, 프로모션 등 적용 영역별 규칙을 정리합니다.
 
 디자인 스탠더드 작성 시 고려사항:
@@ -36,13 +36,13 @@ export const designStandardsConfig: AgentOptions = {
 
 중요: 모든 응답은 반드시 한국어로 작성하세요.
 응답은 반드시 지정된 JSON 형식으로 제공하세요.`,
-  model: "gpt-5.2",
-  modelSettings: {
-    temperature: 0.3,
-  },
-  tools: designStandardsTools,
+	model: "gpt-5.2",
+	modelSettings: {
+		temperature: 0.3,
+	},
+	tools: designStandardsTools,
 };
 
 export const createDesignStandardsAgent = (
-  overrides: Partial<AgentOptions> = {},
+	overrides: Partial<AgentOptions> = {},
 ) => new Agent({ ...designStandardsConfig, ...overrides });

@@ -2,13 +2,16 @@
 
 import type { CSSProperties } from "react";
 import { useCallback, useMemo, useState } from "react";
+import { PropertyInspector } from "./components/PropertyInspector";
+import { BrandOverviewSection } from "./components/sections/BrandOverviewSection";
+import { SectionWrapper } from "./components/sections/SectionWrapper";
+import { ToneOfVoiceSection } from "./components/sections/ToneOfVoiceSection";
+import {
+	BrandEditorProvider,
+	useBrandEditor,
+} from "./context/BrandEditorContext";
 import LogoSection from "./LogoSection";
 import type { BrandType, ThemeColors } from "./types";
-import { BrandEditorProvider, useBrandEditor } from "./context/BrandEditorContext";
-import { PropertyInspector } from "./components/PropertyInspector";
-import { SectionWrapper } from "./components/sections/SectionWrapper";
-import { BrandOverviewSection } from "./components/sections/BrandOverviewSection";
-import { ToneOfVoiceSection } from "./components/sections/ToneOfVoiceSection";
 
 const formatDate = (value: string) => {
 	try {
@@ -495,9 +498,21 @@ function BrandGuideClientInner() {
 							<div className="space-y-5">
 								<div className="grid gap-4 md:grid-cols-3">
 									{[
-										{ ...color.brand.primary, hex: theme.brand.primary, path: "color.brand.primary.hex" },
-										{ ...color.brand.secondary, hex: theme.brand.secondary, path: "color.brand.secondary.hex" },
-										{ ...color.brand.accent, hex: theme.brand.accent, path: "color.brand.accent.hex" },
+										{
+											...color.brand.primary,
+											hex: theme.brand.primary,
+											path: "color.brand.primary.hex",
+										},
+										{
+											...color.brand.secondary,
+											hex: theme.brand.secondary,
+											path: "color.brand.secondary.hex",
+										},
+										{
+											...color.brand.accent,
+											hex: theme.brand.accent,
+											path: "color.brand.accent.hex",
+										},
 									].map((swatch) => (
 										<SectionWrapper
 											key={swatch.name}

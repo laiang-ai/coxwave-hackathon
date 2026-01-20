@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import {
-	UserInputSchema,
 	LogoAssetSchema,
 	runBrandWorkflow,
 	toBrandType,
+	UserInputSchema,
 	type WorkflowEvent,
 } from "@/lib/brand-guideline";
 

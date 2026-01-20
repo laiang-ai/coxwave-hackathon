@@ -31,9 +31,7 @@ export function ToneOfVoiceSection({
 						<p className="text-xs uppercase tracking-[0.3em] text-[color:var(--fg-muted)]">
 							Tone of Voice
 						</p>
-						<h3 className="text-3xl font-semibold">
-							Communication Style
-						</h3>
+						<h3 className="text-3xl font-semibold">Communication Style</h3>
 						<p className="text-sm text-[color:var(--fg-secondary)]">
 							How we speak to our audience and express our brand personality.
 						</p>

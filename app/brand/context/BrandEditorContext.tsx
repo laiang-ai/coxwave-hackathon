@@ -1,11 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { createContext, useContext, useState, useCallback } from "react";
-import type { BrandType } from "../types";
+import { createContext, useCallback, useContext, useState } from "react";
 import type { UseBrandDataReturn } from "../hooks/useBrandData";
 import { useBrandData } from "../hooks/useBrandData";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import type { BrandType } from "../types";
 
 // Section customization settings
 export interface SectionCustomization {
@@ -41,7 +41,11 @@ export interface BrandEditorState extends UseBrandDataReturn {
 
 	// Section Customization
 	customization: SectionCustomization;
-	setCustomization: (value: SectionCustomization | ((prev: SectionCustomization) => SectionCustomization)) => void;
+	setCustomization: (
+		value:
+			| SectionCustomization
+			| ((prev: SectionCustomization) => SectionCustomization),
+	) => void;
 	toggleSectionVisibility: (sectionId: string) => void;
 	reorderSections: (newOrder: string[]) => void;
 	resetCustomization: () => void;
@@ -96,15 +100,18 @@ export function BrandEditorProvider({
 	});
 
 	// Section customization
-	const [customization, setCustomization] = useLocalStorage<SectionCustomization>(
-		"brand-customization",
-		defaultCustomization,
-	);
+	const [customization, setCustomization] =
+		useLocalStorage<SectionCustomization>(
+			"brand-customization",
+			defaultCustomization,
+		);
 
 	// Inspector actions
 	const openInspector = useCallback(
 		(path: string) => {
-			const value = path.split(".").reduce((obj, key) => obj?.[key], brandData.mergedData as any);
+			const value = path
+				.split(".")
+				.reduce((obj, key) => obj?.[key], brandData.mergedData as any);
 			setInspector({
 				isOpen: true,
 				path,
@@ -211,13 +218,10 @@ export function BrandEditorProvider({
 		[brandData.mergedData, brandData.overrides],
 	);
 
-	const importData = useCallback(
-		(data: BrandType) => {
-			// TODO: Implement import logic
-			console.log("Import data:", data);
-		},
-		[],
-	);
+	const importData = useCallback((data: BrandType) => {
+		// TODO: Implement import logic
+		console.log("Import data:", data);
+	}, []);
 
 	const value: BrandEditorState = {
 		...brandData,

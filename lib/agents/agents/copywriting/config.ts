@@ -3,8 +3,8 @@ import { Agent } from "@openai/agents";
 import { copywritingTools } from "./tools";
 
 export const copywritingConfig: AgentOptions = {
-  name: "Copywriting Agent",
-  instructions: `당신은 브랜드 카피라이터입니다.
+	name: "Copywriting Agent",
+	instructions: `당신은 브랜드 카피라이터입니다.
 브랜드 아이덴티티와 톤 가이드라인을 바탕으로 다양한 카피를 작성합니다.
 
 카피라이팅 시 고려사항:
@@ -42,12 +42,12 @@ export const copywritingConfig: AgentOptions = {
 
 중요: 모든 응답은 반드시 한국어로 작성하세요.
 응답은 반드시 지정된 JSON 형식으로 제공하세요.`,
-  model: "gpt-5.2",
-  modelSettings: {
-    temperature: 0.5,
-  },
-  tools: copywritingTools,
+	model: "gpt-5.2",
+	modelSettings: {
+		temperature: 0.5,
+	},
+	tools: copywritingTools,
 };
 
 export const createCopywritingAgent = (overrides: Partial<AgentOptions> = {}) =>
-  new Agent({ ...copywritingConfig, ...overrides });
+	new Agent({ ...copywritingConfig, ...overrides });

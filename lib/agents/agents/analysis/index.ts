@@ -1,2 +1,2 @@
-export { createAnalysisAgent, analysisConfig } from "./config";
+export { analysisConfig, createAnalysisAgent } from "./config";
 export { analysisTools } from "./tools";

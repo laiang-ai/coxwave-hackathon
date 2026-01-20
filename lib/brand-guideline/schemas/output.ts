@@ -1,10 +1,10 @@
 import { z } from "zod";
 import {
-	IdentityModelSchema,
-	GuidelineModelSchema,
-	MarketContextSchema,
-	LogoAssetSchema,
 	BrandVisionSchema,
+	GuidelineModelSchema,
+	IdentityModelSchema,
+	LogoAssetSchema,
+	MarketContextSchema,
 } from "./intermediate";
 
 // ============================================

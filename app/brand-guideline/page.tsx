@@ -10,11 +10,11 @@ import {
 } from "@openai/apps-sdk-ui/components/Icon";
 import { Image } from "@openai/apps-sdk-ui/components/Image";
 import { LoadingDots } from "@openai/apps-sdk-ui/components/Indicator";
-import { Textarea } from "@openai/apps-sdk-ui/components/Textarea";
 import { Input } from "@openai/apps-sdk-ui/components/Input";
+import { Textarea } from "@openai/apps-sdk-ui/components/Textarea";
+import { useRouter } from "next/navigation";
 import type { ChangeEvent } from "react";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import type { ToneOption, WorkflowEvent } from "@/lib/brand-guideline";
 
 // ============================================

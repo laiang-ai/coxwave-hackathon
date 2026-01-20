@@ -3,15 +3,15 @@ import { Agent } from "@openai/agents";
 import { plannerTools } from "./tools";
 
 export const plannerConfig: AgentOptions = {
-  name: "Brand Kit Planner",
-  instructions:
-    "Create structured plans with milestones, tasks, and assumptions. Keep it concise and actionable.",
-  model: "gpt-5.2",
-  modelSettings: {
-    temperature: 0.25,
-  },
-  tools: plannerTools,
+	name: "Brand Kit Planner",
+	instructions:
+		"Create structured plans with milestones, tasks, and assumptions. Keep it concise and actionable.",
+	model: "gpt-5.2",
+	modelSettings: {
+		temperature: 0.25,
+	},
+	tools: plannerTools,
 };
 
 export const createPlannerAgent = (overrides: Partial<AgentOptions> = {}) =>
-  new Agent({ ...plannerConfig, ...overrides });
+	new Agent({ ...plannerConfig, ...overrides });

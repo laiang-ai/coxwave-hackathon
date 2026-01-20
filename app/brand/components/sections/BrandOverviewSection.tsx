@@ -31,11 +31,10 @@ export function BrandOverviewSection({
 						<p className="text-xs uppercase tracking-[0.3em] text-[color:var(--fg-muted)]">
 							Brand Overview
 						</p>
-						<h3 className="text-3xl font-semibold">
-							Mission, Vision & Values
-						</h3>
+						<h3 className="text-3xl font-semibold">Mission, Vision & Values</h3>
 						<p className="text-sm text-[color:var(--fg-secondary)]">
-							Core principles that define our brand identity and guide our decisions.
+							Core principles that define our brand identity and guide our
+							decisions.
 						</p>
 					</div>
 

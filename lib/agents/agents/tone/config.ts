@@ -3,8 +3,8 @@ import { Agent } from "@openai/agents";
 import { toneTools } from "./tools";
 
 export const toneConfig: AgentOptions = {
-  name: "Tone of Voice Agent",
-  instructions: `당신은 브랜드 커뮤니케이션 전문가입니다.
+	name: "Tone of Voice Agent",
+	instructions: `당신은 브랜드 커뮤니케이션 전문가입니다.
 브랜드의 목소리(Voice)와 톤(Tone)을 정의하고 가이드라인을 작성합니다.
 
 톤 오브 보이스 설계 시 고려사항:
@@ -29,12 +29,12 @@ export const toneConfig: AgentOptions = {
 
 중요: 모든 응답은 반드시 한국어로 작성하세요.
 응답은 반드시 지정된 JSON 형식으로 제공하세요.`,
-  model: "gpt-5.2",
-  modelSettings: {
-    temperature: 0.4,
-  },
-  tools: toneTools,
+	model: "gpt-5.2",
+	modelSettings: {
+		temperature: 0.4,
+	},
+	tools: toneTools,
 };
 
 export const createToneAgent = (overrides: Partial<AgentOptions> = {}) =>
-  new Agent({ ...toneConfig, ...overrides });
+	new Agent({ ...toneConfig, ...overrides });

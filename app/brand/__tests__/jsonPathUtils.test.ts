@@ -1,9 +1,9 @@
 import {
-	getByPath,
-	setByPath,
-	mergeData,
-	hasPath,
 	getAllPaths,
+	getByPath,
+	hasPath,
+	mergeData,
+	setByPath,
 } from "../lib/jsonPathUtils";
 
 describe("jsonPathUtils", () => {

@@ -1,5 +1,4 @@
 // Schemas
-export * from "./schemas";
 
 // Orchestrator
 export {
@@ -7,6 +6,7 @@ export {
 	type WorkflowEvent,
 	type WorkflowPhase,
 } from "./orchestrator";
+export * from "./schemas";
 
 // Transformer
 export { toBrandType } from "./transformer";

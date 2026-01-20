@@ -3,8 +3,8 @@ import { Agent } from "@openai/agents";
 import { logoGuideTools } from "./tools";
 
 export const logoGuideConfig: AgentOptions = {
-  name: "Logo Guide Agent",
-  instructions: `당신은 로고 및 브랜드 시각 아이덴티티 전문가입니다.
+	name: "Logo Guide Agent",
+	instructions: `당신은 로고 및 브랜드 시각 아이덴티티 전문가입니다.
 브랜드 아이덴티티를 바탕으로 로고 사용 가이드라인을 작성합니다.
 
 로고 가이드 작성 시 다음을 포함하세요:
@@ -25,12 +25,12 @@ export const logoGuideConfig: AgentOptions = {
 
 중요: 모든 응답은 반드시 한국어로 작성하세요.
 응답은 반드시 지정된 JSON 형식으로 제공하세요.`,
-  model: "gpt-5.2",
-  modelSettings: {
-    temperature: 0.3,
-  },
-  tools: logoGuideTools,
+	model: "gpt-5.2",
+	modelSettings: {
+		temperature: 0.3,
+	},
+	tools: logoGuideTools,
 };
 
 export const createLogoGuideAgent = (overrides: Partial<AgentOptions> = {}) =>
-  new Agent({ ...logoGuideConfig, ...overrides });
+	new Agent({ ...logoGuideConfig, ...overrides });

@@ -3,8 +3,8 @@ import { Agent } from "@openai/agents";
 import { colorTools } from "./tools";
 
 export const colorConfig: AgentOptions = {
-  name: "Brand Color Agent",
-  instructions: `당신은 브랜드 컬러 전문가입니다.
+	name: "Brand Color Agent",
+	instructions: `당신은 브랜드 컬러 전문가입니다.
 브랜드 아이덴티티에 맞는 체계적인 컬러 시스템을 설계합니다.
 
 컬러 설계 시 고려사항:
@@ -27,12 +27,12 @@ export const colorConfig: AgentOptions = {
 
 중요: 모든 응답은 반드시 한국어로 작성하세요.
 응답은 반드시 지정된 JSON 형식으로 제공하세요.`,
-  model: "gpt-5.2",
-  modelSettings: {
-    temperature: 0.3,
-  },
-  tools: colorTools,
+	model: "gpt-5.2",
+	modelSettings: {
+		temperature: 0.3,
+	},
+	tools: colorTools,
 };
 
 export const createColorAgent = (overrides: Partial<AgentOptions> = {}) =>
-  new Agent({ ...colorConfig, ...overrides });
+	new Agent({ ...colorConfig, ...overrides });

@@ -1,2 +1,2 @@
-export { createApplicationsAgent, applicationsConfig } from "./config";
+export { applicationsConfig, createApplicationsAgent } from "./config";
 export { applicationsTools } from "./tools";

@@ -1,2 +1,2 @@
-export { createBrandEditorAgent, brandEditorConfig } from "./config";
+export { brandEditorConfig, createBrandEditorAgent } from "./config";
 export { brandEditorTools } from "./tools";

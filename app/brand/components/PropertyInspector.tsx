@@ -46,7 +46,8 @@ export function PropertyInspector() {
 
 	const pathParts = inspector.path.split(".");
 	const propertyName = pathParts[pathParts.length - 1];
-	const isColor = typeof localValue === "string" && /^#[0-9a-fA-F]{6}$/i.test(localValue);
+	const isColor =
+		typeof localValue === "string" && /^#[0-9a-fA-F]{6}$/i.test(localValue);
 	const isNumber = typeof localValue === "number";
 	const isBoolean = typeof localValue === "boolean";
 	const isString = typeof localValue === "string" && !isColor;

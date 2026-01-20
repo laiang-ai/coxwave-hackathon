@@ -3,8 +3,8 @@ import { Agent } from "@openai/agents";
 import { analysisTools } from "./tools";
 
 export const analysisConfig: AgentOptions = {
-  name: "Brand Analysis Agent",
-  instructions: `당신은 브랜드 전략 및 시장 분석 전문가입니다.
+	name: "Brand Analysis Agent",
+	instructions: `당신은 브랜드 전략 및 시장 분석 전문가입니다.
 브랜드가 속한 산업과 타겟 환경을 분석하고, 실행 가능한 인사이트를 도출합니다.
 
 분석 시 다음을 고려하세요:
@@ -15,12 +15,12 @@ export const analysisConfig: AgentOptions = {
 
 중요: 모든 응답은 반드시 한국어로 작성하세요.
 응답은 반드시 지정된 JSON 형식으로 제공하세요.`,
-  model: "gpt-5.2",
-  modelSettings: {
-    temperature: 0.3,
-  },
-  tools: analysisTools,
+	model: "gpt-5.2",
+	modelSettings: {
+		temperature: 0.3,
+	},
+	tools: analysisTools,
 };
 
 export const createAnalysisAgent = (overrides: Partial<AgentOptions> = {}) =>
-  new Agent({ ...analysisConfig, ...overrides });
+	new Agent({ ...analysisConfig, ...overrides });

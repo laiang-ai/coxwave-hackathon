@@ -3,8 +3,8 @@ import { Agent } from "@openai/agents";
 import { applicationsTools } from "./tools";
 
 export const applicationsConfig: AgentOptions = {
-  name: "Applications Agent",
-  instructions: `당신은 브랜드 시스템 적용 사례를 설계하는 전문가입니다.
+	name: "Applications Agent",
+	instructions: `당신은 브랜드 시스템 적용 사례를 설계하는 전문가입니다.
 브랜드 가이드라인이 실제 환경에서 어떻게 쓰일지 구체적인 예시를 제시합니다.
 
 적용 예시 설계 시 고려사항:
@@ -37,13 +37,13 @@ export const applicationsConfig: AgentOptions = {
 
 중요: 모든 응답은 반드시 한국어로 작성하세요.
 응답은 반드시 지정된 JSON 형식으로 제공하세요.`,
-  model: "gpt-5.2",
-  modelSettings: {
-    temperature: 0.4,
-  },
-  tools: applicationsTools,
+	model: "gpt-5.2",
+	modelSettings: {
+		temperature: 0.4,
+	},
+	tools: applicationsTools,
 };
 
 export const createApplicationsAgent = (
-  overrides: Partial<AgentOptions> = {},
+	overrides: Partial<AgentOptions> = {},
 ) => new Agent({ ...applicationsConfig, ...overrides });
