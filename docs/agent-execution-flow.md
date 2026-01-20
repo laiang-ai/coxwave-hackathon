@@ -35,7 +35,7 @@
                                                              ▼
                                               ┌──────────────────────────────┐
                                               │      OpenAI GPT Models       │
-                                              │      (gpt-4o, gpt-4o-mini)   │
+                                              │      (gpt-5.2, gpt-4.1-mini) │
                                               └──────────────────────────────┘
 ```
 
@@ -72,23 +72,28 @@ export async function* runBrandWorkflow(
   brandName: string;           // 브랜드명 (필수)
   industry: string;            // 산업/카테고리 (필수)
   oneLiner: string;            // 한줄 정의 (필수)
+  logoDataUrl: string;         // 로고 이미지 data URL (필수)
   keywords?: string[];         // 핵심 키워드 (3-5개)
   targetAudience?: string;     // 타겟 오디언스 설명
   toneReference?: string[];    // 톤 레퍼런스
   vision?: string;             // 브랜드 비전
   mission?: string;            // 브랜드 미션
   prohibitedExpressions?: string[];  // 금지 표현
+  additionalContext?: string;  // 추가 컨텍스트
   preferences?: {
     colorMood?: string;        // 선호 색상 무드
     typographyStyle?: string;  // 선호 타이포그래피 스타일
+    formalityLevel?: string;   // 포멀리티 레벨
+    language?: string;         // 응답 언어
   }
 }
 
 // LogoAsset
 {
   url: string;      // 로고 이미지 URL
-  filename: string; // 파일명
-  mimeType: string; // MIME 타입
+  format: string;   // png | jpg | svg
+  width: number;    // 이미지 너비
+  height: number;   // 이미지 높이
 }
 ```
 
@@ -198,12 +203,15 @@ export async function* runBrandWorkflow(
                          └─────────────────────┘
 ```
 
-### Phase 5: Content (콘텐츠 생성) - 2개 에이전트 병렬
+### Phase 5: Content (콘텐츠 생성) - Mockup Studio에서 별도 실행
+
+> **참고**: Phase 5는 메인 워크플로우에서 자동 실행되지 않습니다.
+> Mockup Studio에서 "generate mockup" 클릭 시 `runContentAgents()` 함수를 호출하여 별도로 실행합니다.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    PHASE 5: CONTENT                             │
-│                    (Promise.all - 2개 병렬 실행)                 │
+│           (Mockup Studio에서 별도 실행 - runContentAgents)       │
 └─────────────────────────────────────────────────────────────────┘
                               │
             ┌─────────────────┴─────────────────┐
@@ -351,6 +359,15 @@ export async function* runBrandWorkflow(
                │GuidelineModel │
                └───────┬───────┘
                        │
+                       ▼
+               ┌───────────────┐
+               │   complete    │ ← /brand 페이지로 리다이렉트
+               └───────────────┘
+
+  ─────────────────────────────────────────────────────────────
+  │  Phase 5: Mockup Studio에서 별도 실행 (runContentAgents)  │
+  ─────────────────────────────────────────────────────────────
+                       │
           ┌────────────┴────────────┐
           │                         │
           ▼                         ▼
@@ -370,15 +387,17 @@ export async function* runBrandWorkflow(
 
 ```typescript
 // WorkflowEvent (type: "complete")
+// 메인 워크플로우 (Phase 1-4)
 {
   type: "complete",
   data: {
     identity: IdentityModel,
     guideline: GuidelineModel,
-    copywriting: CopywritingContent,
-    applications: ApplicationsContent,
     logoAsset: LogoAsset,
-    marketContext: MarketContext
+    marketContext: MarketContext,
+    // Phase 5는 Mockup Studio에서 별도 실행
+    copywriting?: CopywritingContent,  // optional
+    applications?: ApplicationsContent  // optional
   }
 }
 ```
@@ -444,6 +463,7 @@ type WorkflowEvent =
 ### 이벤트 순서 예시
 
 ```
+# 메인 워크플로우 (Phase 1-4)
 1. phase-complete: logo-asset
 2. phase-start: analysis
 3. agent-start: vision
@@ -459,14 +479,34 @@ type WorkflowEvent =
 13. agent-start: logo-guide, color, typography, tone, visual, design-standards
 14. agent-complete: (각 에이전트)
 15. phase-complete: guidelines
-16. phase-start: content
-17. agent-start: copywriting, applications
-18. agent-complete: copywriting, applications
-19. phase-complete: content
-20. complete: { data: ... }
+16. complete: { data: ... }  ← /brand 페이지로 리다이렉트
+
+# Phase 5 (Mockup Studio에서 별도 실행)
+# runContentAgents() 호출 시:
+1. phase-start: content
+2. agent-start: copywriting, applications
+3. agent-complete: copywriting, applications
+4. phase-complete: content
 ```
 
 ---
+
+## 신뢰성 & 복구 전략
+
+- Phase 2~5 호출은 지수 백오프 재시도(`withRetry`)로 일시적 오류를 완화합니다.
+- Guideline/Content 단계는 `Promise.allSettled`를 사용해 부분 실패를 허용하며, 스키마 검증 실패 시 섹션별 fallback을 사용합니다.
+- 요청별 로그 컨텍스트를 사용해 동시 요청에서도 로그 충돌을 방지합니다.
+
+## Safety Guardrails
+
+- `/api/brand-guideline/generate`에서 입력 텍스트를 검사하고 프롬프트 인젝션 패턴을 경고 로그로 기록합니다.
+- 위험 패턴이 감지되어도 기본 동작은 차단 없이 진행하며, 필요 시 차단 로직을 활성화할 수 있습니다.
+
+## Chat 브랜드 분석 모드
+
+- `/api/chat`은 이미지가 포함된 요청에서 Vision + Analysis를 병렬 실행합니다.
+- Analysis 응답은 `summary` + `data` JSON을 기대하며, JSON 파싱 실패 시 원문을 요약으로 사용합니다.
+- 최종 응답에는 `generate-guidelines` 액션이 포함되어 후속 가이드라인 생성으로 이어집니다.
 
 ## 에러 처리
 

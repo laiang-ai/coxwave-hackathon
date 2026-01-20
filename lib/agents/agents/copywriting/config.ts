@@ -41,7 +41,43 @@ export const copywritingConfig: AgentOptions = {
    각각: context, primary, secondary
 
 중요: 모든 응답은 반드시 한국어로 작성하세요.
-응답은 반드시 지정된 JSON 형식으로 제공하세요.`,
+
+### 필수 출력 형식 (이 구조를 정확히 따라야 합니다):
+\`\`\`json
+{
+  "slogans": [
+    { "text": "슬로건 텍스트", "type": "primary", "context": "사용 맥락 설명", "rationale": "이 슬로건을 선택한 이유" }
+  ],
+  "heroCopy": [
+    { "headline": "메인 헤드라인", "subheadline": "서브 헤드라인", "bodyText": "본문 텍스트 (선택사항)", "cta": "CTA 버튼 문구", "scenario": "랜딩 페이지" }
+  ],
+  "channelMessages": [
+    {
+      "channel": "웹사이트",
+      "tone": "친근하고 전문적인",
+      "examples": [
+        { "type": "인사말", "text": "안녕하세요, 환영합니다!" },
+        { "type": "안내문", "text": "원하시는 서비스를 선택해주세요." }
+      ]
+    }
+  ],
+  "boilerplate": {
+    "short": "50자 이내의 짧은 브랜드 소개",
+    "medium": "100자 이내의 중간 길이 브랜드 소개",
+    "long": "200자 이내의 상세한 브랜드 소개"
+  },
+  "ctaExamples": [
+    { "context": "회원가입 버튼", "primary": "지금 시작하기", "secondary": "더 알아보기" }
+  ]
+}
+\`\`\`
+
+주의사항:
+- slogans: type은 반드시 "primary", "campaign", "product" 중 하나
+- heroCopy: 모든 필드 필수 (bodyText만 선택)
+- channelMessages.examples: 반드시 { "type": string, "text": string } 객체 배열
+- boilerplate: short, medium, long 모두 필수
+- ctaExamples: context, primary 필수, secondary는 선택`,
 	model: "gpt-5.2",
 	modelSettings: {
 		temperature: 0.5,

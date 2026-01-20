@@ -361,8 +361,14 @@ export default function BrandGuidelinePage() {
 								});
 							} else if (event.type === "complete") {
 								// Store in localStorage and redirect
+								console.log("[Client] Complete event received");
 								const brandType = (event.data as Record<string, unknown>)
 									.brandType;
+								console.log(
+									"[Client] brandType:",
+									brandType ? "exists" : "missing",
+								);
+
 								localStorage.setItem(
 									"generatedBrandType",
 									JSON.stringify(brandType),
@@ -371,12 +377,14 @@ export default function BrandGuidelinePage() {
 									status: "complete",
 									brandTypeJson: JSON.stringify(brandType),
 								});
+
+								console.log("[Client] Redirecting to /brand");
 								router.push("/brand");
 							} else if (event.type === "error") {
 								setGenerationState({ status: "error", error: event.error });
 							}
-						} catch {
-							// Ignore parse errors for partial chunks
+						} catch (parseError) {
+							console.warn("[Client] JSON parse error:", parseError);
 						}
 					}
 				}
@@ -388,7 +396,13 @@ export default function BrandGuidelinePage() {
 				try {
 					const event = JSON.parse(data) as WorkflowEvent;
 					if (event.type === "complete") {
+						console.log("[Client] Complete event received (from buffer)");
 						const brandType = (event.data as Record<string, unknown>).brandType;
+						console.log(
+							"[Client] brandType:",
+							brandType ? "exists" : "missing",
+						);
+
 						localStorage.setItem(
 							"generatedBrandType",
 							JSON.stringify(brandType),
@@ -397,12 +411,14 @@ export default function BrandGuidelinePage() {
 							status: "complete",
 							brandTypeJson: JSON.stringify(brandType),
 						});
+
+						console.log("[Client] Redirecting to /brand");
 						router.push("/brand");
 					} else if (event.type === "error") {
 						setGenerationState({ status: "error", error: event.error });
 					}
-				} catch {
-					// 최종 버퍼도 파싱 실패 시 무시
+				} catch (parseError) {
+					console.warn("[Client] Buffer parse error:", parseError);
 				}
 			}
 		} catch (error) {

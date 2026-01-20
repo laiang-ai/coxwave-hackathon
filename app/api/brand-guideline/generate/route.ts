@@ -61,19 +61,29 @@ export async function POST(req: Request) {
 					for await (const event of runBrandWorkflow(userInput, logoAsset)) {
 						if (event.type === "complete") {
 							// Transform to BrandType and send final result
-							const brandType = toBrandType(
-								event.data.identity,
-								event.data.guideline,
-								event.data.logoAsset,
-							);
+							try {
+								const brandType = toBrandType(
+									event.data.identity,
+									event.data.guideline,
+									event.data.logoAsset,
+								);
+								console.log("[API] toBrandType success");
 
-							sendEvent({
-								type: "complete",
-								data: {
-									...event.data,
-									brandType,
-								},
-							} as unknown as WorkflowEvent);
+								sendEvent({
+									type: "complete",
+									data: {
+										...event.data,
+										brandType,
+									},
+								} as unknown as WorkflowEvent);
+							} catch (transformError) {
+								console.error("[API] toBrandType error:", transformError);
+								// 변환 실패해도 원본 데이터로 complete 이벤트 전송
+								sendEvent({
+									type: "complete",
+									data: event.data,
+								} as unknown as WorkflowEvent);
+							}
 						} else {
 							sendEvent(event);
 						}

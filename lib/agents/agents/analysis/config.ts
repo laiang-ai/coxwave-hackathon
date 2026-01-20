@@ -14,16 +14,7 @@ export const analysisConfig: AgentOptions = {
 4. 브랜드가 활용할 수 있는 기회 영역
 
 중요: 모든 응답은 반드시 한국어로 작성하세요.
-응답은 반드시 다음 JSON 형식으로 제공하세요:
-{
-  "summary": "사용자에게 보여줄 자연스러운 요약 텍스트 (2-3문단, 마크다운 불렛포인트 사용 가능)",
-  "data": {
-    "industry": "추정 산업 분야",
-    "targetAudience": "타겟 오디언스",
-    "positioning": "브랜드 포지셔닝 방향",
-    "differentiation": "차별화 기회"
-  }
-}`,
+응답은 반드시 프롬프트에서 지정한 JSON 구조를 따르세요. 별도 형식이 없으면 간결한 문단으로 답하세요.`,
 	model: "gpt-5.2",
 	modelSettings: {
 		temperature: 0.3,

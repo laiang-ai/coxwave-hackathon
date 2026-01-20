@@ -259,3 +259,44 @@ export function logWorkflowEvent(
 		}
 	}
 }
+
+/**
+ * 검증 오류 항목 타입
+ */
+export interface ValidationIssue {
+	path: PropertyKey[];
+	message: string;
+}
+
+/**
+ * 스키마 검증 오류 로깅
+ */
+export function logValidationError(
+	ctx: WorkflowLogContext,
+	schemaName: string,
+	errors: ValidationIssue[],
+	attempt: number,
+	willRetry: boolean,
+): void {
+	const level = getLogLevel();
+	if (level === "silent") return;
+
+	const timestamp = formatTimestamp();
+	const { reset, dim, yellow, red, bright } = colors;
+	const ctxPrefix = `${dim}[${ctx.id}]${reset} `;
+
+	console.log("");
+	console.log(
+		`${ctxPrefix}${dim}[${timestamp}]${reset} ${yellow}${bright}⚠ VALIDATION ERROR${reset} (attempt ${attempt + 1})`,
+	);
+	console.log(`${ctxPrefix}${dim}  └─ Schema: ${schemaName}${reset}`);
+
+	for (const issue of errors) {
+		const path = issue.path.join(".") || "(root)";
+		console.log(`${ctxPrefix}${red}  └─ ${path}: ${issue.message}${reset}`);
+	}
+
+	if (willRetry) {
+		console.log(`${ctxPrefix}${yellow}  ↻ 에이전트 재실행 중...${reset}`);
+	}
+}

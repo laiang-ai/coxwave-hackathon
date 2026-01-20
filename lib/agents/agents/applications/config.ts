@@ -36,7 +36,33 @@ export const applicationsConfig: AgentOptions = {
 - 컬러와 타이포그래피 적용
 
 중요: 모든 응답은 반드시 한국어로 작성하세요.
-응답은 반드시 지정된 JSON 형식으로 제공하세요.`,
+
+### 필수 출력 형식 (이 구조를 정확히 따라야 합니다):
+\`\`\`json
+{
+  "applications": {
+    "digital": [
+      { "name": "웹사이트 메인 페이지", "description": "헤더에 로고 배치, 메인 컬러 배경, 히어로 섹션에 브랜드 타이포그래피 적용..." },
+      { "name": "모바일 앱 스플래시", "description": "앱 실행 시 로고 중앙 배치, 브랜드 컬러 그라데이션 배경..." },
+      { "name": "SNS 프로필", "description": "프로필 이미지에 심볼 마크 사용, 커버 이미지에 브랜드 패턴..." }
+    ],
+    "print": [
+      { "name": "명함", "description": "앞면 로고와 이름, 뒷면 연락처와 QR코드, 브랜드 컬러 포인트..." },
+      { "name": "브로셔", "description": "A4 3단 접지, 표지에 로고와 태그라인, 내지에 서비스 소개..." }
+    ],
+    "environmental": [
+      { "name": "사인물", "description": "외부 간판에 로고 적용, 야간 조명 고려한 컬러..." }
+    ]
+  }
+}
+\`\`\`
+
+주의사항:
+- applications 객체 안에 digital, print, environmental 키 필수
+- digital: 최소 3개 항목 필수
+- print: 최소 2개 항목 필수
+- environmental: 선택사항 (빈 배열 가능)
+- 각 항목은 반드시 { "name": string, "description": string } 형태`,
 	model: "gpt-5.2",
 	modelSettings: {
 		temperature: 0.4,

@@ -72,12 +72,28 @@
 
 ### 전체 플로우
 
+워크플로우는 두 단계로 나뉘어 실행됩니다:
+
+#### A. 브랜드 가이드라인 생성 (자동 실행)
+
 ```
-PHASE 1: 입력 수집 ──▶ PHASE 1.5: 로고 에셋 ──▶ PHASE 2: 분석 ──▶ PHASE 3: Identity Model
-                                                    │
-                                                    ▼
-PHASE 7: 시각화 ◀── PHASE 6: 통합 ◀── PHASE 5: 카피 ◀── PHASE 4: Guideline Model
+PHASE 1: 입력 수집 ──▶ PHASE 1.5: 로고 에셋 ──▶ PHASE 2: 분석 ──▶ PHASE 3: Identity Model ──▶ PHASE 4: Guideline Model
+                                                                                                        │
+                                                                                                        ▼
+                                                                                              /brand 페이지로 리다이렉트
 ```
+
+- Phase 1-4 완료 후 자동으로 `/brand` 페이지로 이동
+- 브랜드 아이덴티티와 가이드라인 데이터가 전달됨
+
+#### B. 콘텐츠 생성 (Mockup Studio에서 별도 실행)
+
+```
+PHASE 5: 카피라이팅 + 적용 예시 생성 ──▶ PHASE 6: 통합 ──▶ PHASE 7: 시각화
+```
+
+- Mockup Studio에서 "generate mockup" 클릭 시 실행
+- Copywriting Agent와 Applications Agent 실행
 
 > 피드백 루프: 입력 변경은 PHASE 1, 가이드라인/카피 수정은 PHASE 4-6으로 되돌린다.
 
@@ -113,7 +129,7 @@ PHASE 1.5: 로고 에셋 처리 (Logo Asset Processing)
 │  • 로고 업로드 저장                                                         │
 │  • 포맷/해상도 메타데이터 추출                                              │
 │                                                                             │
-│  OUTPUT: LogoAsset[] (url, format, width, height, type)                      │
+│  OUTPUT: LogoAsset (url, format, width, height)                              │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
@@ -203,7 +219,7 @@ PHASE 6: 문서 통합 (Document Merge)
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  MERGER                                                                     │
 │  ─────────────────────────────────────────────────────────────────────────│
-│  INPUT: LogoAsset[] + IdentityModel + GuidelineModel                        │
+│  INPUT: LogoAsset + IdentityModel + GuidelineModel                          │
 │         + CopywritingContent + ApplicationsContent                          │
 │                                                                             │
 │  OUTPUT: BrandGuidelineDocument {                                           │
@@ -243,7 +259,7 @@ UserInput
     │
     ├───────────────┬──────────────────────┐
     ▼               ▼                      ▼
- LogoAsset[]   LogoAnalysis           MarketContext
+ LogoAsset     LogoAnalysis           MarketContext
     │               │                      │
     └───────────────┴──────────┬───────────┘
                                │
@@ -288,6 +304,12 @@ CopywritingContent     ApplicationsContent
 - 브랜드 아키텍처(서브브랜드/제품 라인) 정보가 있으면 문서에 반영됨
 - 내보내기 결과에 템플릿 누락/빈칸 없음
 
+## 신뢰성 & 안전성
+
+- 에이전트 호출은 지수 백오프 재시도(`withRetry`)로 일시적인 실패를 완화합니다.
+- Guideline/Content 단계는 `Promise.allSettled` 기반으로 부분 실패를 허용하고, 섹션별 fallback을 적용합니다.
+- 입력 텍스트는 프롬프트 인젝션/위험 패턴을 검사하며, 기본 동작은 경고 로그만 남깁니다.
+
 ---
 
 ## Input 스키마
@@ -300,22 +322,16 @@ interface UserInput {
   brandName: string; // 브랜드명 (1-50자)
   industry: string; // 산업/카테고리
   oneLiner: string; // 한줄 정의 (10-200자)
-  logo: File; // 대표 로고 이미지 (PNG, JPG, SVG / 최대 5MB, 업로드 후 logoUrl 생성)
+  logoDataUrl: string; // 대표 로고 이미지 data URL (필수)
 
   // 선택 입력 (권장)
   keywords?: string[]; // 핵심 키워드 (3-5개)
   targetAudience?: string; // 타겟 오디언스 설명
   toneReference?: ToneOption[]; // 톤 레퍼런스 선택
-  logoAssets?: {
-    type: "symbol" | "wordmark" | "lockup" | "service" | "appIcon" | "productBadge" | "other";
-    file: File;
-    description?: string;
-  }[]; // 서브 로고/앱 아이콘/서비스 로고 등
 
   // 선택 입력 (상세)
   vision?: string; // 비전
   mission?: string; // 미션
-  brandArchitectureNote?: string; // 서브브랜드/제품 라인 구조 메모
   prohibitedExpressions?: string[]; // 금지 표현
   additionalContext?: string; // 추가 컨텍스트
 
@@ -348,18 +364,18 @@ type ToneOption =
 | 1    | brandName                   | text         | ✓    | 1-50자, 특수문자 제한        |
 | 1    | industry                    | select       | ✓    | 미리 정의된 목록 + 직접 입력 |
 | 1    | oneLiner                    | textarea     | ✓    | 10-200자                     |
-| 1    | logo                        | file         | -    | PNG/JPG/SVG, max 5MB         |
-| 1    | logoAssets                  | file (multi) | -    | PNG/JPG/SVG, max 5MB         |
+| 1    | logo                        | file         | ✓    | PNG/JPG/SVG, max 5MB         |
 | 2    | keywords                    | tag-input    | -    | 3-5개                        |
 | 2    | toneReference               | multi-select | -    | 2-4개 선택                   |
 | 2    | targetAudience              | textarea     | -    | 자유 형식                    |
 | 3    | vision                      | textarea     | -    | max 300자                    |
 | 3    | mission                     | textarea     | -    | max 300자                    |
-| 3    | brandArchitectureNote       | textarea     | -    | max 300자                    |
 | 3    | prohibitedExpressions       | tag-input    | -    | max 10개                     |
 | 4    | preferences.colorMood       | radio        | -    | 6개 옵션                     |
 | 4    | preferences.typographyStyle | radio        | -    | 4개 옵션                     |
 | 4    | preferences.formalityLevel  | slider       | -    | formal ↔ friendly            |
+
+> 참고: UI에서는 파일 업로드를 받지만, API 전달 시 `logoDataUrl`(base64 data URL)로 변환됩니다.
 
 ---
 
@@ -375,8 +391,6 @@ interface LogoAsset {
   format: 'png' | 'jpg' | 'svg';
   width: number;
   height: number;
-  type: "primary" | "symbol" | "wordmark" | "lockup" | "service" | "appIcon" | "productBadge" | "other";
-  variant?: string; // 예: 지역/캠페인/제품군
 }
 ```
 
@@ -1010,7 +1024,6 @@ interface BrandGuidelineDocument {
     applicationsContent: ApplicationsContent;
     marketContext: MarketContext;
     logoAsset: LogoAsset;
-    logoAssets?: LogoAsset[];
   };
 }
 

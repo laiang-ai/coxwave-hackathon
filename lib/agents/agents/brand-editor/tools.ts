@@ -1,6 +1,16 @@
 import { tool } from "@openai/agents";
 import { z } from "zod";
 
+const HEX_COLOR_REGEX = /^#?[0-9a-fA-F]{6}$/;
+
+function normalizeHexColor(input: string): string | null {
+	const trimmed = input.trim();
+	if (!HEX_COLOR_REGEX.test(trimmed)) return null;
+	return trimmed.startsWith("#")
+		? trimmed.toUpperCase()
+		: `#${trimmed.toUpperCase()}`;
+}
+
 /**
  * 브랜드 속성 업데이트 도구
  * Brand Editor가 사용자 요청에 따라 브랜드 속성을 수정할 때 사용
@@ -65,8 +75,19 @@ const suggestColorAdjustmentTool = tool({
 			.describe("How much to adjust the color"),
 	}),
 	execute: async ({ currentColor, adjustment, intensity }) => {
+		const normalized = normalizeHexColor(currentColor);
+		if (!normalized) {
+			return JSON.stringify({
+				action: "color_suggestion",
+				status: "invalid_color",
+				originalColor: currentColor,
+				message:
+					"유효하지 않은 HEX 색상입니다. 예: #FF5733 형식으로 입력해주세요.",
+			});
+		}
+
 		// HEX를 RGB로 변환
-		const hex = currentColor.replace("#", "");
+		const hex = normalized.replace("#", "");
 		const r = parseInt(hex.substring(0, 2), 16);
 		const g = parseInt(hex.substring(2, 4), 16);
 		const b = parseInt(hex.substring(4, 6), 16);
@@ -129,11 +150,11 @@ const suggestColorAdjustmentTool = tool({
 
 		return JSON.stringify({
 			action: "color_suggestion",
-			originalColor: currentColor,
+			originalColor: normalized,
 			suggestedColor: newHex,
 			adjustment,
 			intensity,
-			message: `"${currentColor}"를 ${adjustment} (${intensity}) 조정하여 "${newHex}"를 제안합니다.`,
+			message: `"${normalized}"를 ${adjustment} (${intensity}) 조정하여 "${newHex}"를 제안합니다.`,
 		});
 	},
 });
@@ -151,6 +172,19 @@ const checkContrastRatioTool = tool({
 		background: z.string().describe("Background color in HEX format"),
 	}),
 	execute: async ({ foreground, background }) => {
+		const normalizedForeground = normalizeHexColor(foreground);
+		const normalizedBackground = normalizeHexColor(background);
+		if (!normalizedForeground || !normalizedBackground) {
+			return JSON.stringify({
+				action: "contrast_check",
+				status: "invalid_color",
+				foreground,
+				background,
+				message:
+					"유효하지 않은 HEX 색상이 포함되어 있습니다. 예: #FF5733 형식으로 입력해주세요.",
+			});
+		}
+
 		// 상대 휘도 계산
 		const getLuminance = (hex: string) => {
 			const rgb = hex
@@ -174,8 +208,8 @@ const checkContrastRatioTool = tool({
 		const passesAAA = ratio >= 7;
 
 		return JSON.stringify({
-			foreground,
-			background,
+			foreground: normalizedForeground,
+			background: normalizedBackground,
 			contrastRatio: ratio.toFixed(2),
 			wcag: {
 				AA_normal: passesAA ? "pass" : "fail",

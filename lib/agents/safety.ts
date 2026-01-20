@@ -93,9 +93,11 @@ export function sanitizeUserInput(input: {
 	oneLiner?: string;
 	keywords?: string[];
 	targetAudience?: string;
+	toneReference?: string[];
 	vision?: string;
 	mission?: string;
 	prohibitedExpressions?: string[];
+	additionalContext?: string;
 }): {
 	isValid: boolean;
 	warnings: string[];
@@ -107,8 +109,10 @@ export function sanitizeUserInput(input: {
 		input.industry,
 		input.oneLiner,
 		input.targetAudience,
+		...(input.toneReference || []),
 		input.vision,
 		input.mission,
+		input.additionalContext,
 		...(input.keywords || []),
 		...(input.prohibitedExpressions || []),
 	].filter((f): f is string => typeof f === "string");

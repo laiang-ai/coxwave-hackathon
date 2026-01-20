@@ -8,6 +8,14 @@ type UserMessageItem = {
 	content: Array<{ type: string; text?: string; image?: string }>;
 };
 
+function extractJsonFromText(text: string): Record<string, unknown> {
+	const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+	if (jsonMatch) {
+		return JSON.parse(jsonMatch[1].trim());
+	}
+	return JSON.parse(text.trim());
+}
+
 // Extract image data URLs from the last user message
 function extractImages(messages: unknown[]): string[] {
 	const reversed = [...messages].reverse();
@@ -101,7 +109,18 @@ async function runBrandAnalysis(
 3. 브랜드 포지셔닝 방향
 4. 차별화 기회
 
-사용자 정보: ${userText || "없음"}`,
+사용자 정보: ${userText || "없음"}
+
+응답은 반드시 아래 JSON 형식으로만 제공하세요:
+{
+  "summary": "사용자에게 보여줄 자연스러운 요약 텍스트 (2-3문단, 마크다운 불렛포인트 사용 가능)",
+  "data": {
+    "industry": "추정 산업 분야",
+    "targetAudience": "타겟 오디언스",
+    "positioning": "브랜드 포지셔닝 방향",
+    "differentiation": "차별화 기회"
+  }
+}`,
 				},
 			],
 		},
@@ -119,9 +138,43 @@ async function runBrandAnalysis(
 	let marketContextSummary = "";
 	let marketContextData: Record<string, unknown> = {};
 	try {
-		const parsed = JSON.parse(marketContextRaw);
-		marketContextSummary = parsed.summary ?? "";
-		marketContextData = parsed.data ?? {};
+		const parsed = extractJsonFromText(marketContextRaw) as Record<
+			string,
+			unknown
+		>;
+		if (typeof parsed.summary === "string") {
+			marketContextSummary = parsed.summary;
+		}
+		if (parsed.data && typeof parsed.data === "object") {
+			marketContextData = parsed.data as Record<string, unknown>;
+		} else if (parsed.industryOverview) {
+			const overview = String(parsed.industryOverview ?? "");
+			const trends = Array.isArray(parsed.categoryTrends)
+				? parsed.categoryTrends
+				: [];
+			const audience = Array.isArray(parsed.audienceInsights)
+				? parsed.audienceInsights
+				: [];
+			const opportunities = Array.isArray(parsed.opportunityAreas)
+				? parsed.opportunityAreas
+				: [];
+			marketContextSummary = [
+				overview,
+				trends.length > 0 ? `- 트렌드: ${trends.join(", ")}` : "",
+				audience.length > 0 ? `- 오디언스: ${audience.join(", ")}` : "",
+				opportunities.length > 0
+					? `- 기회 영역: ${opportunities.join(", ")}`
+					: "",
+			]
+				.filter(Boolean)
+				.join("\n");
+			marketContextData = {
+				industryOverview: overview,
+				categoryTrends: trends,
+				audienceInsights: audience,
+				opportunityAreas: opportunities,
+			};
+		}
 	} catch {
 		// JSON 파싱 실패 시 원본 텍스트를 summary로 사용
 		marketContextSummary = marketContextRaw;

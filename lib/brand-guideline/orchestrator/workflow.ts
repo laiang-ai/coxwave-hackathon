@@ -1,5 +1,12 @@
 import { run } from "@openai/agents";
-import { createLogContext, logWorkflowEvent } from "./logger";
+import { z } from "zod";
+import type { ZodType } from "zod";
+import {
+	createLogContext,
+	logWorkflowEvent,
+	logValidationError,
+	type WorkflowLogContext,
+} from "./logger";
 import { createAnalysisAgent } from "@/lib/agents/agents/analysis";
 import { createApplicationsAgent } from "@/lib/agents/agents/applications";
 import { createColorAgent } from "@/lib/agents/agents/color";
@@ -68,6 +75,74 @@ async function withRetry<T>(
 }
 
 /**
+ * 스키마 검증 + 재시도 통합 함수
+ * 에이전트 실행 후 스키마 검증 실패 시 재시도
+ */
+async function runContentAgentWithValidation<T>(
+	schema: z.ZodSchema<T>,
+	agentFn: () => Promise<string>,
+	baseData: { id: string; identityId: string; guidelineId: string },
+	logCtx: WorkflowLogContext,
+	schemaName: string,
+	maxRetries = 2,
+): Promise<T> {
+	let lastError: Error | null = null;
+
+	for (let attempt = 0; attempt <= maxRetries; attempt++) {
+		try {
+			const result = await agentFn();
+			const extracted = extractJson(result);
+
+			// 디버그 모드: 에이전트 응답 로깅
+			if (process.env.WORKFLOW_LOG_LEVEL === "debug") {
+				console.log(
+					`[${logCtx.id}] Agent response for ${schemaName}:`,
+					JSON.stringify(extracted, null, 2),
+				);
+			}
+
+			return schema.parse({ ...baseData, ...extracted });
+		} catch (error) {
+			lastError = error instanceof Error ? error : new Error(String(error));
+
+			if (error instanceof z.ZodError) {
+				const willRetry = attempt < maxRetries;
+				logValidationError(
+					logCtx,
+					schemaName,
+					error.issues,
+					attempt,
+					willRetry,
+				);
+
+				if (!willRetry) break;
+
+				// 재시도 전 대기 (지수 백오프)
+				await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
+			} else {
+				// 검증 외 오류는 즉시 throw
+				throw error;
+			}
+		}
+	}
+
+	// 최종 실패 시 사용자 친화적 오류 메시지
+	if (lastError instanceof z.ZodError) {
+		const fieldErrors = lastError.issues
+			.map((issue) => `• ${issue.path.join(".") || "root"}: ${issue.message}`)
+			.join("\n");
+
+		throw new Error(
+			`콘텐츠 생성 중 오류가 발생했습니다. ${maxRetries + 1}회 시도 후 실패.\n` +
+				`문제 필드:\n${fieldErrors}\n` +
+				`다시 시도해 주세요.`,
+		);
+	}
+
+	throw lastError;
+}
+
+/**
  * Promise.allSettled 결과에서 성공한 값만 추출
  * 실패한 항목은 null로 대체
  */
@@ -77,6 +152,27 @@ function extractSettledResults<T>(
 	return results.map((result) =>
 		result.status === "fulfilled" ? result.value : null,
 	);
+}
+
+function resolveSection(result: unknown, key: string): unknown {
+	if (!result || typeof result !== "object") return result;
+	const record = result as Record<string, unknown>;
+	return record[key] ?? result;
+}
+
+function safeParseSection<T>(
+	schema: ZodType<T>,
+	value: unknown,
+	fallback: T,
+	label: string,
+): T {
+	const parsed = schema.safeParse(value);
+	if (parsed.success) return parsed.data;
+	console.warn(
+		`[Workflow] Invalid ${label} payload, using fallback.`,
+		parsed.error.issues,
+	);
+	return fallback;
 }
 
 // ============================================
@@ -101,8 +197,9 @@ export type WorkflowEvent =
 			data: {
 				identity: IdentityModel;
 				guideline: GuidelineModel;
-				copywriting: CopywritingContent;
-				applications: ApplicationsContent;
+				// copywriting과 applications는 Mockup Studio에서 별도 생성
+				copywriting?: CopywritingContent;
+				applications?: ApplicationsContent;
 				logoAsset: LogoAsset;
 				marketContext: MarketContext;
 			};
@@ -278,15 +375,108 @@ async function runGuidelineAgents(
 	identity: IdentityModel,
 	input: UserInput,
 ): Promise<Omit<GuidelineModel, "id" | "identityId" | "createdAt">> {
+	const defaultTypeSpec = {
+		size: "16px",
+		weight: "400",
+		lineHeight: "1.5",
+		usage: "해당 없음",
+	};
+	const fallback = {
+		logo: {
+			description: "해당 없음",
+			usageRules: [],
+			clearSpace: { description: "해당 없음", ratio: "0" },
+			minimumSize: { print: "0", digital: "0" },
+			variations: [],
+			donts: [],
+		},
+		brandElements: {
+			contourBottle: {
+				description: "해당 없음",
+				usageRules: [],
+				donts: [],
+			},
+			dynamicRibbon: {
+				description: "해당 없음",
+				spacingRules: [],
+				lockupRules: [],
+				donts: [],
+			},
+		},
+		identityStandards: {
+			coBranding: { rules: [] },
+			legalLine: { required: false, rules: [], examples: [] },
+		},
+		color: {
+			philosophy: "해당 없음",
+			primary: [],
+			secondary: [],
+			neutral: [],
+			combinations: [],
+			accessibility: { contrastRatios: [] },
+			donts: [],
+		},
+		typography: {
+			philosophy: "해당 없음",
+			direction: "sans-serif",
+			rationale: "해당 없음",
+			primary: {
+				family: "N/A",
+				fallback: ["sans-serif"],
+				weights: ["400"],
+				source: "N/A",
+				license: "N/A",
+			},
+			hierarchy: {
+				h1: { ...defaultTypeSpec },
+				h2: { ...defaultTypeSpec },
+				h3: { ...defaultTypeSpec },
+				body: { ...defaultTypeSpec },
+				caption: { ...defaultTypeSpec },
+			},
+			rules: [],
+			donts: [],
+		},
+		tone: {
+			overview: "해당 없음",
+			principles: [],
+			writingStyle: { characteristics: [], rules: [] },
+			examples: [],
+			vocabulary: { preferred: [], avoided: [] },
+		},
+		visual: {
+			imagery: {
+				style: "해당 없음",
+				characteristics: [],
+				subjects: [],
+				treatments: [],
+				donts: [],
+			},
+			layout: {
+				gridSystem: "N/A",
+				margins: "0",
+				spacing: { unit: "0px", scale: ["0px"] },
+			},
+		},
+		designStandards: {
+			packaging: { graphicRules: [], formRules: [] },
+			signage: { rules: [] },
+			fleet: { rules: [] },
+			promotions: { rules: [] },
+			customer: { rules: [] },
+		},
+	};
+	const agentLabels = [
+		"logo-guide",
+		"color",
+		"typography",
+		"tone",
+		"visual",
+		"design-standards",
+	];
+
 	// Run all guideline agents in parallel
-	const [
-		logoResult,
-		colorResult,
-		typographyResult,
-		toneResult,
-		visualResult,
-		designStandardsResult,
-	] = await Promise.all([
+	const settled = await Promise.allSettled([
 		// Logo Guide Agent
 		withRetry(async () => {
 			const agent = createLogoGuideAgent();
@@ -624,55 +814,100 @@ async function runGuidelineAgents(
 		}),
 	]);
 
-	const result = {
-		logo: (logoResult as Record<string, unknown>).logo || logoResult,
-		brandElements: (logoResult as Record<string, unknown>).brandElements || {
-			contourBottle: {
-				description: "해당 없음",
-				usageRules: [],
-				donts: [],
-			},
-			dynamicRibbon: {
-				description: "해당 없음",
-				spacingRules: [],
-				lockupRules: [],
-				donts: [],
-			},
-		},
-		identityStandards: (logoResult as Record<string, unknown>)
-			.identityStandards || {
-			coBranding: { rules: [] },
-			legalLine: { required: false, rules: [], examples: [] },
-		},
-		color: (colorResult as Record<string, unknown>).color || colorResult,
-		typography:
-			(typographyResult as Record<string, unknown>).typography ||
-			typographyResult,
-		tone: (toneResult as Record<string, unknown>).tone || toneResult,
-		visual: (visualResult as Record<string, unknown>).visual || visualResult,
-		designStandards:
-			(designStandardsResult as Record<string, unknown>).designStandards ||
-			designStandardsResult,
-	};
+	settled.forEach((result, index) => {
+		if (result.status === "rejected") {
+			console.warn(
+				`[Workflow] ${agentLabels[index]} agent failed after retries.`,
+				result.reason,
+			);
+		}
+	});
 
-	return result as Omit<GuidelineModel, "id" | "identityId" | "createdAt">;
+	const [
+		logoResult,
+		colorResult,
+		typographyResult,
+		toneResult,
+		visualResult,
+		designStandardsResult,
+	] = extractSettledResults(settled);
+
+	return {
+		logo: safeParseSection(
+			GuidelineModelSchema.shape.logo,
+			resolveSection(logoResult, "logo"),
+			fallback.logo,
+			"logo",
+		),
+		brandElements: safeParseSection(
+			GuidelineModelSchema.shape.brandElements,
+			resolveSection(logoResult, "brandElements"),
+			fallback.brandElements,
+			"brandElements",
+		),
+		identityStandards: safeParseSection(
+			GuidelineModelSchema.shape.identityStandards,
+			resolveSection(logoResult, "identityStandards"),
+			fallback.identityStandards,
+			"identityStandards",
+		),
+		color: safeParseSection(
+			GuidelineModelSchema.shape.color,
+			resolveSection(colorResult, "color"),
+			fallback.color,
+			"color",
+		),
+		typography: safeParseSection(
+			GuidelineModelSchema.shape.typography,
+			resolveSection(typographyResult, "typography"),
+			fallback.typography,
+			"typography",
+		),
+		tone: safeParseSection(
+			GuidelineModelSchema.shape.tone,
+			resolveSection(toneResult, "tone"),
+			fallback.tone,
+			"tone",
+		),
+		visual: safeParseSection(
+			GuidelineModelSchema.shape.visual,
+			resolveSection(visualResult, "visual"),
+			fallback.visual,
+			"visual",
+		),
+		designStandards: safeParseSection(
+			GuidelineModelSchema.shape.designStandards,
+			resolveSection(designStandardsResult, "designStandards"),
+			fallback.designStandards,
+			"designStandards",
+		),
+	};
 }
 
-async function runContentAgents(
+/**
+ * Content Generation (Phase 5) - Mockup Studio에서 별도 실행
+ * Copywriting Agent와 Applications Agent를 실행하여 콘텐츠 생성
+ */
+export async function runContentAgents(
 	identity: IdentityModel,
-	guideline: Omit<GuidelineModel, "id" | "identityId" | "createdAt">,
+	guideline: GuidelineModel,
+	logCtx?: WorkflowLogContext,
 ): Promise<{
-	copywriting: Omit<CopywritingContent, "id" | "identityId" | "guidelineId">;
-	applications: Omit<ApplicationsContent, "id" | "identityId" | "guidelineId">;
+	copywriting: CopywritingContent;
+	applications: ApplicationsContent;
 }> {
+	// logCtx가 제공되지 않으면 기본값 생성
+	const ctx = logCtx ?? createLogContext();
 	const identityJson = JSON.stringify(identity, null, 2);
 	const guidelineJson = JSON.stringify(guideline, null, 2);
 
-	const [copywritingResult, applicationsResult] = await Promise.all([
-		// Copywriting Agent
-		withRetry(async () => {
-			const agent = createCopywritingAgent();
-			const prompt = `다음 브랜드 정보를 바탕으로 카피를 작성해주세요.
+	const [copywriting, applications] = await Promise.all([
+		// Copywriting Agent - 스키마 검증 + 재시도 통합
+		runContentAgentWithValidation(
+			CopywritingContentSchema,
+			async () => {
+				const agent = createCopywritingAgent();
+				const prompt = `다음 브랜드 정보를 바탕으로 카피를 작성해주세요.
 
 ## 브랜드 아이덴티티
 ${identityJson}
@@ -680,16 +915,27 @@ ${identityJson}
 ## 톤 가이드라인
 ${JSON.stringify(guideline.tone, null, 2)}
 
-CopywritingContent 스키마에 맞는 JSON 형식으로 응답해주세요.`;
+CopywritingContent 스키마에 맞는 JSON 형식으로 응답해주세요.
+반드시 instructions에 명시된 JSON 형식을 정확히 따라주세요.`;
 
-			const result = await run(agent, prompt);
-			return extractJson(result.finalOutput || "");
-		}),
+				const result = await run(agent, prompt);
+				return result.finalOutput || "";
+			},
+			{
+				id: generateId(),
+				identityId: identity.id,
+				guidelineId: guideline.id,
+			},
+			ctx,
+			"CopywritingContent",
+		),
 
-		// Applications Agent
-		withRetry(async () => {
-			const agent = createApplicationsAgent();
-			const prompt = `다음 정보를 바탕으로 ApplicationsContent를 생성해주세요.
+		// Applications Agent - 스키마 검증 + 재시도 통합
+		runContentAgentWithValidation(
+			ApplicationsContentSchema,
+			async () => {
+				const agent = createApplicationsAgent();
+				const prompt = `다음 정보를 바탕으로 ApplicationsContent를 생성해주세요.
 
 ## 브랜드 아이덴티티
 ${identityJson}
@@ -697,23 +943,23 @@ ${identityJson}
 ## 가이드라인
 ${guidelineJson}
 
-ApplicationsContent 스키마에 맞는 JSON 형식으로 응답해주세요.`;
+ApplicationsContent 스키마에 맞는 JSON 형식으로 응답해주세요.
+반드시 instructions에 명시된 JSON 형식을 정확히 따라주세요.`;
 
-			const result = await run(agent, prompt);
-			return extractJson(result.finalOutput || "");
-		}),
+				const result = await run(agent, prompt);
+				return result.finalOutput || "";
+			},
+			{
+				id: generateId(),
+				identityId: identity.id,
+				guidelineId: guideline.id,
+			},
+			ctx,
+			"ApplicationsContent",
+		),
 	]);
 
-	return {
-		copywriting: copywritingResult as Omit<
-			CopywritingContent,
-			"id" | "identityId" | "guidelineId"
-		>,
-		applications: applicationsResult as Omit<
-			ApplicationsContent,
-			"id" | "identityId" | "guidelineId"
-		>,
-	};
+	return { copywriting, applications };
 }
 
 // ============================================
@@ -881,79 +1127,13 @@ export async function* runBrandWorkflow(
 		logWorkflowEvent(guidelinesPhaseComplete, logCtx);
 		yield guidelinesPhaseComplete;
 
-		// Phase 5: Content Generation (2 agents in parallel)
-		const contentPhaseStart: WorkflowEvent = {
-			type: "phase-start",
-			phase: "content",
-			message: "콘텐츠 생성 시작",
-		};
-		logWorkflowEvent(contentPhaseStart, logCtx);
-		yield contentPhaseStart;
-
-		const copywritingStart: WorkflowEvent = {
-			type: "agent-start",
-			agent: "copywriting",
-			message: "카피라이팅 중...",
-		};
-		logWorkflowEvent(copywritingStart, logCtx);
-		yield copywritingStart;
-
-		const applicationsStart: WorkflowEvent = {
-			type: "agent-start",
-			agent: "applications",
-			message: "적용 예시 생성 중...",
-		};
-		logWorkflowEvent(applicationsStart, logCtx);
-		yield applicationsStart;
-
-		const contentPartial = await runContentAgents(identity, guidelinePartial);
-
-		const copywriting: CopywritingContent = CopywritingContentSchema.parse({
-			id: generateId(),
-			identityId: identity.id,
-			guidelineId: guideline.id,
-			...contentPartial.copywriting,
-		});
-
-		const applications: ApplicationsContent = ApplicationsContentSchema.parse({
-			id: generateId(),
-			identityId: identity.id,
-			guidelineId: guideline.id,
-			...contentPartial.applications,
-		});
-
-		const copywritingComplete: WorkflowEvent = {
-			type: "agent-complete",
-			agent: "copywriting",
-			message: "카피라이팅 완료",
-		};
-		logWorkflowEvent(copywritingComplete, logCtx);
-		yield copywritingComplete;
-
-		const applicationsComplete: WorkflowEvent = {
-			type: "agent-complete",
-			agent: "applications",
-			message: "적용 예시 완료",
-		};
-		logWorkflowEvent(applicationsComplete, logCtx);
-		yield applicationsComplete;
-
-		const contentPhaseComplete: WorkflowEvent = {
-			type: "phase-complete",
-			phase: "content",
-			message: "콘텐츠 생성 완료",
-		};
-		logWorkflowEvent(contentPhaseComplete, logCtx);
-		yield contentPhaseComplete;
-
-		// Complete
+		// Phase 5 (Content Generation)는 Mockup Studio에서 별도 실행
+		// Phase 4 완료 후 바로 complete 이벤트 발생
 		const completeEvent: WorkflowEvent = {
 			type: "complete",
 			data: {
 				identity,
 				guideline,
-				copywriting,
-				applications,
 				logoAsset,
 				marketContext,
 			},

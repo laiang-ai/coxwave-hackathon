@@ -3,6 +3,7 @@
 // Orchestrator
 export {
 	runBrandWorkflow,
+	runContentAgents,
 	type WorkflowEvent,
 	type WorkflowPhase,
 } from "./orchestrator";
