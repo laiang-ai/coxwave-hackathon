@@ -967,10 +967,7 @@ export async function* runBrandWorkflow(
 		};
 		logWorkflowEvent(errorEvent, logCtx);
 
-		if (
-			process.env.WORKFLOW_LOG_LEVEL === "debug" &&
-			error instanceof Error
-		) {
+		if (process.env.WORKFLOW_LOG_LEVEL === "debug" && error instanceof Error) {
 			console.error("Stack trace:", error.stack);
 		}
 

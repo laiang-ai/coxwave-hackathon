@@ -124,7 +124,8 @@ const suggestColorAdjustmentTool = tool({
 				break;
 		}
 
-		const newHex = `#${newR.toString(16).padStart(2, "0")}${newG.toString(16).padStart(2, "0")}${newB.toString(16).padStart(2, "0")}`.toUpperCase();
+		const newHex =
+			`#${newR.toString(16).padStart(2, "0")}${newG.toString(16).padStart(2, "0")}${newB.toString(16).padStart(2, "0")}`.toUpperCase();
 
 		return JSON.stringify({
 			action: "color_suggestion",
@@ -166,8 +167,7 @@ const checkContrastRatioTool = tool({
 
 		const l1 = getLuminance(foreground);
 		const l2 = getLuminance(background);
-		const ratio =
-			(Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+		const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
 
 		const passesAA = ratio >= 4.5;
 		const passesAALarge = ratio >= 3;

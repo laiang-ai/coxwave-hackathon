@@ -388,8 +388,7 @@ export default function BrandGuidelinePage() {
 				try {
 					const event = JSON.parse(data) as WorkflowEvent;
 					if (event.type === "complete") {
-						const brandType = (event.data as Record<string, unknown>)
-							.brandType;
+						const brandType = (event.data as Record<string, unknown>).brandType;
 						localStorage.setItem(
 							"generatedBrandType",
 							JSON.stringify(brandType),

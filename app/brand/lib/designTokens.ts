@@ -95,9 +95,7 @@ export const shadows = {
 /**
  * Helper to build className from typography tokens
  */
-export function buildTypographyClass(
-	style: keyof typeof typography,
-): string {
+export function buildTypographyClass(style: keyof typeof typography): string {
 	const tokens = typography[style];
 	return Object.values(tokens).join(" ");
 }

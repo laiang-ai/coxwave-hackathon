@@ -182,9 +182,7 @@ export function logWorkflowEvent(
 			}
 
 			const durationStr = duration ? `${formatDuration(duration)}` : "";
-			const progress = ctx
-				? `[${ctx.agentsCompleted}/${TOTAL_AGENTS}]`
-				: "";
+			const progress = ctx ? `[${ctx.agentsCompleted}/${TOTAL_AGENTS}]` : "";
 			console.log(
 				`${ctxPrefix}${dim}[${timestamp}]${reset} ${green}  └─ Agent: ${bright}${event.agent}${reset}${green} complete ${dim}${durationStr} ${yellow}${progress}${reset}`,
 			);
