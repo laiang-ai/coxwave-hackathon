@@ -330,13 +330,16 @@ export default function BrandGuidelinePage() {
 
 			const reader = response.body.getReader();
 			const decoder = new TextDecoder();
+			let buffer = ""; // 불완전한 청크를 버퍼링
 
 			while (true) {
 				const { value, done } = await reader.read();
 				if (done) break;
 
-				const chunk = decoder.decode(value, { stream: true });
-				const lines = chunk.split("\n");
+				buffer += decoder.decode(value, { stream: true });
+				const lines = buffer.split("\n");
+				// 마지막 라인은 불완전할 수 있으므로 버퍼에 유지
+				buffer = lines.pop() || "";
 
 				for (const line of lines) {
 					if (line.startsWith("data: ")) {
@@ -376,6 +379,31 @@ export default function BrandGuidelinePage() {
 							// Ignore parse errors for partial chunks
 						}
 					}
+				}
+			}
+
+			// 남은 버퍼 처리
+			if (buffer.startsWith("data: ")) {
+				const data = buffer.slice(6);
+				try {
+					const event = JSON.parse(data) as WorkflowEvent;
+					if (event.type === "complete") {
+						const brandType = (event.data as Record<string, unknown>)
+							.brandType;
+						localStorage.setItem(
+							"generatedBrandType",
+							JSON.stringify(brandType),
+						);
+						setGenerationState({
+							status: "complete",
+							brandTypeJson: JSON.stringify(brandType),
+						});
+						router.push("/brand");
+					} else if (event.type === "error") {
+						setGenerationState({ status: "error", error: event.error });
+					}
+				} catch {
+					// 최종 버퍼도 파싱 실패 시 무시
 				}
 			}
 		} catch (error) {

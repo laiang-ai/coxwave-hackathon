@@ -6,6 +6,7 @@ import {
 	UserInputSchema,
 	type WorkflowEvent,
 } from "@/lib/brand-guideline";
+import { sanitizeUserInput } from "@/lib/agents/safety";
 
 export const maxDuration = 300; // 5 minutes max
 
@@ -33,6 +34,18 @@ export async function POST(req: Request) {
 
 		const userInput = userInputResult.data;
 		const logoAsset = logoAssetResult.data;
+
+		// Safety validation - check for prompt injection and dangerous patterns
+		const safetyResult = sanitizeUserInput(userInput);
+		if (!safetyResult.isValid) {
+			console.warn("Safety warnings detected:", safetyResult.warnings);
+			// Log warnings but don't block - allow with monitoring
+			// For stricter enforcement, uncomment:
+			// return NextResponse.json(
+			// 	{ error: "Input validation failed", details: safetyResult.warnings },
+			// 	{ status: 400 },
+			// );
+		}
 
 		// Create SSE stream for progress updates
 		const encoder = new TextEncoder();

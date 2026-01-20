@@ -58,7 +58,11 @@ function hasBrandKeywords(messages: unknown[]): boolean {
 async function runBrandAnalysis(
 	logoDataUrl: string,
 	userText: string,
-): Promise<{ content: string; logoAnalysis: string; marketContext: string }> {
+): Promise<{
+	content: string;
+	logoAnalysis: string;
+	marketContext: Record<string, unknown>;
+}> {
 	const visionAgent = getAgent("vision");
 	const analysisAgent = getAgent("analysis");
 
@@ -109,7 +113,19 @@ async function runBrandAnalysis(
 	]);
 
 	const logoAnalysis = visionResult.finalOutput ?? "";
-	const marketContext = analysisResult.finalOutput ?? "";
+	const marketContextRaw = analysisResult.finalOutput ?? "";
+
+	// JSON 파싱하여 summary와 data 분리
+	let marketContextSummary = "";
+	let marketContextData: Record<string, unknown> = {};
+	try {
+		const parsed = JSON.parse(marketContextRaw);
+		marketContextSummary = parsed.summary ?? "";
+		marketContextData = parsed.data ?? {};
+	} catch {
+		// JSON 파싱 실패 시 원본 텍스트를 summary로 사용
+		marketContextSummary = marketContextRaw;
+	}
 
 	const content = `## 브랜드 분석 결과
 
@@ -117,12 +133,12 @@ async function runBrandAnalysis(
 ${logoAnalysis}
 
 ### 시장 컨텍스트
-${marketContext}
+${marketContextSummary}
 
 ---
 위 분석을 바탕으로 전체 브랜드 가이드라인을 생성할 수 있습니다.`;
 
-	return { content, logoAnalysis, marketContext };
+	return { content, logoAnalysis, marketContext: marketContextData };
 }
 
 export async function POST(req: Request) {

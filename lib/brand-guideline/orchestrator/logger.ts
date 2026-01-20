@@ -40,12 +40,31 @@ function formatDuration(ms: number): string {
 	return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`;
 }
 
-// Track timing
-const phaseTimings = new Map<string, number>();
-const agentTimings = new Map<string, number>();
-let workflowStartTime: number | null = null;
-let totalAgentsCompleted = 0;
+// ============================================
+// 요청별 컨텍스트 (동시 요청 시 로그 충돌 방지)
+// ============================================
+export interface WorkflowLogContext {
+	id: string;
+	phaseTimings: Map<string, number>;
+	agentTimings: Map<string, number>;
+	startTime: number | null;
+	agentsCompleted: number;
+}
+
 const TOTAL_AGENTS = 11; // vision, analysis, identity, logo-guide, color, typography, tone, visual, design-standards, copywriting, applications
+
+/**
+ * 새로운 워크플로우 로그 컨텍스트 생성
+ */
+export function createLogContext(): WorkflowLogContext {
+	return {
+		id: crypto.randomUUID().slice(0, 8),
+		phaseTimings: new Map(),
+		agentTimings: new Map(),
+		startTime: null,
+		agentsCompleted: 0,
+	};
+}
 
 // Phase descriptions
 const phaseDescriptions: Record<string, string> = {
@@ -71,101 +90,173 @@ const agentDescriptions: Record<string, string> = {
 	applications: "Creating application examples",
 };
 
-export function logWorkflowEvent(event: WorkflowEvent): void {
+/**
+ * 워크플로우 이벤트 로깅 (요청별 컨텍스트 사용)
+ * @param event 워크플로우 이벤트
+ * @param ctx 선택적 로그 컨텍스트 (없으면 기본 동작)
+ */
+export function logWorkflowEvent(
+	event: WorkflowEvent,
+	ctx?: WorkflowLogContext,
+): void {
 	const level = getLogLevel();
 	if (level === "silent") return;
 
 	const timestamp = formatTimestamp();
-	const { reset, bright, dim, cyan, green, blue, red, yellow, white, bgBlue, bgGreen, bgRed } = colors;
+	const {
+		reset,
+		bright,
+		dim,
+		cyan,
+		green,
+		blue,
+		red,
+		yellow,
+		white,
+		bgBlue,
+		bgGreen,
+		bgRed,
+	} = colors;
 	const now = Date.now();
+
+	// 컨텍스트 ID 프리픽스 (있는 경우)
+	const ctxPrefix = ctx ? `${dim}[${ctx.id}]${reset} ` : "";
 
 	switch (event.type) {
 		case "phase-start": {
-			if (!workflowStartTime) {
-				workflowStartTime = now;
-				console.log("");
-				console.log(`${bgBlue}${white}${bright} BRAND GUIDELINE WORKFLOW STARTED ${reset}`);
-				console.log(`${dim}${"─".repeat(50)}${reset}`);
+			if (ctx) {
+				if (!ctx.startTime) {
+					ctx.startTime = now;
+					console.log("");
+					console.log(
+						`${ctxPrefix}${bgBlue}${white}${bright} BRAND GUIDELINE WORKFLOW STARTED ${reset}`,
+					);
+					console.log(`${ctxPrefix}${dim}${"─".repeat(50)}${reset}`);
+				}
+				ctx.phaseTimings.set(event.phase, now);
 			}
-			phaseTimings.set(event.phase, now);
 			const desc = phaseDescriptions[event.phase] || event.phase;
 			console.log("");
-			console.log(`${dim}[${timestamp}]${reset} ${cyan}${bright}▶ PHASE: ${desc}${reset}`);
-			console.log(`${dim}[${timestamp}]${reset} ${cyan}  └─ ${event.message}${reset}`);
+			console.log(
+				`${ctxPrefix}${dim}[${timestamp}]${reset} ${cyan}${bright}▶ PHASE: ${desc}${reset}`,
+			);
+			console.log(
+				`${ctxPrefix}${dim}[${timestamp}]${reset} ${cyan}  └─ ${event.message}${reset}`,
+			);
 			break;
 		}
 
 		case "phase-complete": {
-			const startTime = phaseTimings.get(event.phase);
+			const startTime = ctx?.phaseTimings.get(event.phase);
 			const duration = startTime ? now - startTime : null;
-			phaseTimings.delete(event.phase);
+			ctx?.phaseTimings.delete(event.phase);
 
 			const desc = phaseDescriptions[event.phase] || event.phase;
 			const durationStr = duration ? ` (${formatDuration(duration)})` : "";
-			console.log(`${dim}[${timestamp}]${reset} ${green}${bright}✓ PHASE COMPLETE: ${desc}${reset}${dim}${durationStr}${reset}`);
+			console.log(
+				`${ctxPrefix}${dim}[${timestamp}]${reset} ${green}${bright}✓ PHASE COMPLETE: ${desc}${reset}${dim}${durationStr}${reset}`,
+			);
 			break;
 		}
 
 		case "agent-start": {
-			agentTimings.set(event.agent, now);
+			ctx?.agentTimings.set(event.agent, now);
 			const desc = agentDescriptions[event.agent] || "";
-			console.log(`${dim}[${timestamp}]${reset} ${blue}  ┌─ Agent: ${bright}${event.agent}${reset}${blue} starting...${reset}`);
+			console.log(
+				`${ctxPrefix}${dim}[${timestamp}]${reset} ${blue}  ┌─ Agent: ${bright}${event.agent}${reset}${blue} starting...${reset}`,
+			);
 			if (desc) {
-				console.log(`${dim}[${timestamp}]${reset} ${dim}  │  └─ ${desc}${reset}`);
+				console.log(
+					`${ctxPrefix}${dim}[${timestamp}]${reset} ${dim}  │  └─ ${desc}${reset}`,
+				);
 			}
 			break;
 		}
 
 		case "agent-complete": {
-			const startTime = agentTimings.get(event.agent);
+			const startTime = ctx?.agentTimings.get(event.agent);
 			const duration = startTime ? now - startTime : null;
-			agentTimings.delete(event.agent);
-			totalAgentsCompleted++;
+			ctx?.agentTimings.delete(event.agent);
+			if (ctx) {
+				ctx.agentsCompleted++;
+			}
 
 			const durationStr = duration ? `${formatDuration(duration)}` : "";
-			const progress = `[${totalAgentsCompleted}/${TOTAL_AGENTS}]`;
+			const progress = ctx
+				? `[${ctx.agentsCompleted}/${TOTAL_AGENTS}]`
+				: "";
 			console.log(
-				`${dim}[${timestamp}]${reset} ${green}  └─ Agent: ${bright}${event.agent}${reset}${green} complete ${dim}${durationStr} ${yellow}${progress}${reset}`,
+				`${ctxPrefix}${dim}[${timestamp}]${reset} ${green}  └─ Agent: ${bright}${event.agent}${reset}${green} complete ${dim}${durationStr} ${yellow}${progress}${reset}`,
 			);
 			break;
 		}
 
 		case "complete": {
-			const totalDuration = workflowStartTime ? now - workflowStartTime : null;
-			const durationStr = totalDuration ? formatDuration(totalDuration) : "unknown";
+			const totalDuration = ctx?.startTime ? now - ctx.startTime : null;
+			const durationStr = totalDuration
+				? formatDuration(totalDuration)
+				: "unknown";
+			const agentsRun = ctx?.agentsCompleted ?? "unknown";
 
 			console.log("");
-			console.log(`${dim}${"─".repeat(50)}${reset}`);
-			console.log(`${bgGreen}${white}${bright} WORKFLOW COMPLETED SUCCESSFULLY ${reset}`);
+			console.log(`${ctxPrefix}${dim}${"─".repeat(50)}${reset}`);
+			console.log(
+				`${ctxPrefix}${bgGreen}${white}${bright} WORKFLOW COMPLETED SUCCESSFULLY ${reset}`,
+			);
 			console.log("");
-			console.log(`${dim}  Summary:${reset}`);
-			console.log(`${dim}  ├─ Total Duration: ${reset}${bright}${durationStr}${reset}`);
-			console.log(`${dim}  ├─ Agents Run: ${reset}${bright}${totalAgentsCompleted}${reset}`);
-			console.log(`${dim}  ├─ Identity ID: ${reset}${dim}${event.data.identity.id}${reset}`);
-			console.log(`${dim}  └─ Guideline ID: ${reset}${dim}${event.data.guideline.id}${reset}`);
+			console.log(`${ctxPrefix}${dim}  Summary:${reset}`);
+			console.log(
+				`${ctxPrefix}${dim}  ├─ Total Duration: ${reset}${bright}${durationStr}${reset}`,
+			);
+			console.log(
+				`${ctxPrefix}${dim}  ├─ Agents Run: ${reset}${bright}${agentsRun}${reset}`,
+			);
+			console.log(
+				`${ctxPrefix}${dim}  ├─ Identity ID: ${reset}${dim}${event.data.identity.id}${reset}`,
+			);
+			console.log(
+				`${ctxPrefix}${dim}  └─ Guideline ID: ${reset}${dim}${event.data.guideline.id}${reset}`,
+			);
 			console.log("");
 
-			// Reset counters
-			workflowStartTime = null;
-			totalAgentsCompleted = 0;
+			// 컨텍스트 리셋
+			if (ctx) {
+				ctx.startTime = null;
+				ctx.agentsCompleted = 0;
+				ctx.phaseTimings.clear();
+				ctx.agentTimings.clear();
+			}
 			break;
 		}
 
 		case "error": {
-			const totalDuration = workflowStartTime ? now - workflowStartTime : null;
-			const durationStr = totalDuration ? ` after ${formatDuration(totalDuration)}` : "";
+			const totalDuration = ctx?.startTime ? now - ctx.startTime : null;
+			const durationStr = totalDuration
+				? ` after ${formatDuration(totalDuration)}`
+				: "";
+			const agentsCompleted = ctx?.agentsCompleted ?? 0;
 
 			console.log("");
-			console.log(`${dim}${"─".repeat(50)}${reset}`);
-			console.error(`${bgRed}${white}${bright} WORKFLOW ERROR ${reset}${durationStr}`);
+			console.log(`${ctxPrefix}${dim}${"─".repeat(50)}${reset}`);
+			console.error(
+				`${ctxPrefix}${bgRed}${white}${bright} WORKFLOW ERROR ${reset}${durationStr}`,
+			);
 			console.error("");
-			console.error(`${red}  Error: ${bright}${event.error}${reset}`);
-			console.error(`${dim}  └─ Agents completed before error: ${totalAgentsCompleted}/${TOTAL_AGENTS}${reset}`);
+			console.error(
+				`${ctxPrefix}${red}  Error: ${bright}${event.error}${reset}`,
+			);
+			console.error(
+				`${ctxPrefix}${dim}  └─ Agents completed before error: ${agentsCompleted}/${TOTAL_AGENTS}${reset}`,
+			);
 			console.log("");
 
-			// Reset counters
-			workflowStartTime = null;
-			totalAgentsCompleted = 0;
+			// 컨텍스트 리셋
+			if (ctx) {
+				ctx.startTime = null;
+				ctx.agentsCompleted = 0;
+				ctx.phaseTimings.clear();
+				ctx.agentTimings.clear();
+			}
 			break;
 		}
 	}
