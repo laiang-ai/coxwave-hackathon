@@ -17,14 +17,23 @@
 ## 최종 산출물 구조
 
 > 참고: ProtoPie Brand Guideline과 같은 전문적인 브랜드 가이드라인 문서
+>
+> - 전시형 레이아웃: A4 비율 단일 페이지, 넓은 여백, 한 페이지 = 한 주제
+> - 텍스트는 좌측, 시각 자료는 우측에 배치 (2-column)
+> - 스크롤 웹은 풀페이지 섹션 또는 챕터 단위 구성
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                    BRAND GUIDELINE DOCUMENT                         │
+│             BRAND GUIDELINE DOCUMENT (EXHIBITION STYLE)             │
 ├─────────────────────────────────────────────────────────────────────┤
+│  GLOBAL LAYOUT RULES                                                 │
+│  ├─ A4 ratio single page, wide margins                               │
+│  ├─ One topic per page, minimal motion                               │
+│  ├─ Text-left / Visual-right (2-column)                              │
+│  └─ White base, light/dark theme variants if needed                  │
 │                                                                     │
-│  1. COVER                                                           │
-│     └─ 브랜드명, 로고, 태그라인                                    │
+│  1. COVER (centered, text-first)                                     │
+│     └─ 날짜, 브랜드명, 문서 타이틀                                  │
 │                                                                     │
 │  2. BRAND OVERVIEW                                                  │
 │     ├─ Brand Story (브랜드 스토리)                                  │
@@ -32,42 +41,26 @@
 │     ├─ Core Values (핵심 가치)                                      │
 │     └─ Brand Personality (브랜드 성격)                              │
 │                                                                     │
-│  3. LOGO USAGE                                                      │
-│     ├─ Primary Logo (주 로고)                                       │
-│     ├─ Logo Variations (로고 변형)                                  │
-│     ├─ Clear Space (여백 규정)                                      │
-│     ├─ Minimum Size (최소 크기)                                     │
-│     └─ Logo Don'ts (금지 사항)                                      │
+│  3. LOGO                                                            │
+│     ├─ Horizontal / Vertical variants                               │
+│     ├─ Symbol & Wordmark                                            │
+│     ├─ Spacing & Minimum Size                                       │
+│     └─ Logo Don'ts                                                  │
 │                                                                     │
-│  4. COLOR SYSTEM                                                    │
-│     ├─ Primary Colors (주요 컬러)                                   │
-│     ├─ Secondary Colors (보조 컬러)                                 │
-│     ├─ Color Combinations (컬러 조합)                               │
-│     └─ Color Usage Rules (사용 규칙)                                │
+│  4. COLOR PALETTE                                                   │
+│     ├─ Swatch Cards (Name, HEX, CMYK, Pantone)                      │
+│     └─ Ratio Examples (Light / Dark)                                │
 │                                                                     │
 │  5. TYPOGRAPHY                                                      │
-│     ├─ Primary Typeface (주요 서체)                                 │
-│     ├─ Type Hierarchy (타입 계층)                                   │
-│     ├─ Font Pairings (폰트 조합)                                    │
-│     └─ Typography Rules (사용 규칙)                                 │
+│     └─ Type hierarchy + live copy preview                           │
 │                                                                     │
 │  6. TONE OF VOICE                                                   │
-│     ├─ Voice Principles (목소리 원칙)                               │
-│     ├─ Writing Style (글쓰기 스타일)                                │
-│     ├─ Do's and Don'ts (권장/금지 표현)                             │
-│     └─ Example Copy (예시 카피)                                     │
-│                                                                     │
 │  7. VISUAL ELEMENTS                                                 │
-│     ├─ Iconography (아이콘 스타일)                                  │
-│     ├─ Imagery Style (이미지 스타일)                                │
-│     ├─ Graphic Elements (그래픽 요소)                               │
-│     └─ Layout Grid (레이아웃 그리드)                                │
-│                                                                     │
 │  8. APPLICATIONS                                                    │
-│     ├─ Digital (웹사이트, 앱, SNS)                                  │
-│     ├─ Print (명함, 브로셔)                                         │
-│     └─ Environmental (사인, 배너)                                   │
 │                                                                     │
+│  WEB TEMPLATE MAP                                                   │
+│  / (Intro) /logo /symbol /spacing /colors /typography                │
+│  - fullpage section scroll or chapter scroll                        │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -256,63 +249,63 @@ Guideline     Guidelines      Guideline
 ```typescript
 interface UserInput {
   // 필수 입력
-  brandName: string;                     // 브랜드명 (1-50자)
-  industry: string;                      // 산업/카테고리
-  oneLiner: string;                      // 한줄 정의 (10-200자)
+  brandName: string; // 브랜드명 (1-50자)
+  industry: string; // 산업/카테고리
+  oneLiner: string; // 한줄 정의 (10-200자)
 
   // 선택 입력 (권장)
-  logo?: File | null;                    // 로고 이미지 (PNG, JPG, SVG / 최대 5MB)
-  keywords?: string[];                   // 핵심 키워드 (3-5개)
-  targetAudience?: string;               // 타겟 오디언스 설명
-  toneReference?: ToneOption[];          // 톤 레퍼런스 선택
+  logo?: File | null; // 로고 이미지 (PNG, JPG, SVG / 최대 5MB)
+  keywords?: string[]; // 핵심 키워드 (3-5개)
+  targetAudience?: string; // 타겟 오디언스 설명
+  toneReference?: ToneOption[]; // 톤 레퍼런스 선택
 
   // 선택 입력 (상세)
-  vision?: string;                       // 비전
-  mission?: string;                      // 미션
-  differentiator?: string;               // 경쟁사 대비 차별점
-  prohibitedExpressions?: string[];      // 금지 표현
-  referenceUrls?: string[];              // 참고 URL (경쟁사, 벤치마크)
-  additionalContext?: string;            // 추가 컨텍스트
+  vision?: string; // 비전
+  mission?: string; // 미션
+  differentiator?: string; // 경쟁사 대비 차별점
+  prohibitedExpressions?: string[]; // 금지 표현
+  referenceUrls?: string[]; // 참고 URL (경쟁사, 벤치마크)
+  additionalContext?: string; // 추가 컨텍스트
 
   // 선호도 설정
   preferences?: {
-    colorMood?: 'vibrant' | 'muted' | 'bold' | 'subtle' | 'warm' | 'cool';
-    typographyStyle?: 'modern' | 'classic' | 'playful' | 'minimal';
-    formalityLevel?: 'formal' | 'professional' | 'casual' | 'friendly';
-    language?: 'ko' | 'en' | 'both';
+    colorMood?: "vibrant" | "muted" | "bold" | "subtle" | "warm" | "cool";
+    typographyStyle?: "modern" | "classic" | "playful" | "minimal";
+    formalityLevel?: "formal" | "professional" | "casual" | "friendly";
+    language?: "ko" | "en" | "both";
   };
 }
 
 type ToneOption =
-  | '전문적인'
-  | '친근한'
-  | '혁신적인'
-  | '신뢰감있는'
-  | '세련된'
-  | '따뜻한'
-  | '역동적인'
-  | '차분한'
-  | '유머러스한'
-  | '고급스러운';
+  | "전문적인"
+  | "친근한"
+  | "혁신적인"
+  | "신뢰감있는"
+  | "세련된"
+  | "따뜻한"
+  | "역동적인"
+  | "차분한"
+  | "유머러스한"
+  | "고급스러운";
 ```
 
 ### 입력 폼 필드 명세
 
-| Step | 필드명 | 타입 | 필수 | 검증 규칙 |
-|------|--------|------|------|-----------|
-| 1 | brandName | text | ✓ | 1-50자, 특수문자 제한 |
-| 1 | industry | select | ✓ | 미리 정의된 목록 + 직접 입력 |
-| 1 | oneLiner | textarea | ✓ | 10-200자 |
-| 1 | logo | file | - | PNG/JPG/SVG, max 5MB |
-| 2 | keywords | tag-input | - | 3-5개 |
-| 2 | toneReference | multi-select | - | 2-4개 선택 |
-| 2 | targetAudience | textarea | - | 자유 형식 |
-| 3 | vision | textarea | - | max 300자 |
-| 3 | mission | textarea | - | max 300자 |
-| 3 | prohibitedExpressions | tag-input | - | max 10개 |
-| 4 | preferences.colorMood | radio | - | 6개 옵션 |
-| 4 | preferences.typographyStyle | radio | - | 4개 옵션 |
-| 4 | preferences.formalityLevel | slider | - | formal ↔ friendly |
+| Step | 필드명                      | 타입         | 필수 | 검증 규칙                    |
+| ---- | --------------------------- | ------------ | ---- | ---------------------------- |
+| 1    | brandName                   | text         | ✓    | 1-50자, 특수문자 제한        |
+| 1    | industry                    | select       | ✓    | 미리 정의된 목록 + 직접 입력 |
+| 1    | oneLiner                    | textarea     | ✓    | 10-200자                     |
+| 1    | logo                        | file         | -    | PNG/JPG/SVG, max 5MB         |
+| 2    | keywords                    | tag-input    | -    | 3-5개                        |
+| 2    | toneReference               | multi-select | -    | 2-4개 선택                   |
+| 2    | targetAudience              | textarea     | -    | 자유 형식                    |
+| 3    | vision                      | textarea     | -    | max 300자                    |
+| 3    | mission                     | textarea     | -    | max 300자                    |
+| 3    | prohibitedExpressions       | tag-input    | -    | max 10개                     |
+| 4    | preferences.colorMood       | radio        | -    | 6개 옵션                     |
+| 4    | preferences.typographyStyle | radio        | -    | 4개 옵션                     |
+| 4    | preferences.formalityLevel  | slider       | -    | formal ↔ friendly            |
 
 ---
 
@@ -384,8 +377,8 @@ interface IdentityModel {
   // 보이스 기초
   voiceFoundation: {
     toneKeywords: string[];
-    formalityLevel: 'formal' | 'professional' | 'casual' | 'friendly';
-    energyLevel: 'calm' | 'balanced' | 'dynamic' | 'energetic';
+    formalityLevel: "formal" | "professional" | "casual" | "friendly";
+    energyLevel: "calm" | "balanced" | "dynamic" | "energetic";
   };
 
   // 로고 분석 결과
@@ -444,7 +437,7 @@ interface GuidelineModel {
       contrastRatios: {
         combination: string;
         ratio: string;
-        wcagLevel: 'AA' | 'AAA';
+        wcagLevel: "AA" | "AAA";
       }[];
     };
     donts: string[];
@@ -453,7 +446,7 @@ interface GuidelineModel {
   // 타이포그래피
   typography: {
     philosophy: string;
-    direction: 'sans-serif' | 'serif' | 'geometric' | 'humanist' | 'mixed';
+    direction: "sans-serif" | "serif" | "geometric" | "humanist" | "mixed";
     rationale: string;
     primary: {
       family: string;
@@ -560,7 +553,7 @@ interface CopywritingContent {
 
   slogans: {
     text: string;
-    type: 'primary' | 'campaign' | 'product';
+    type: "primary" | "campaign" | "product";
     context: string;
     rationale: string;
   }[];
@@ -608,14 +601,63 @@ interface BrandGuidelineDocument {
   metadata: {
     brandName: string;
     generatedBy: string;
-    language: 'ko' | 'en';
+    language: "ko" | "en";
   };
 
   cover: {
     brandName: string;
+    documentTitle?: string;
     tagline: string;
     logoUrl?: string;
     date: string;
+  };
+
+  exhibition: {
+    layout: {
+      pageRatio: "a4";
+      margins: "wide";
+      grid: "2-column";
+      oneTopicPerPage: boolean;
+      visualFirst: boolean;
+      background: "white";
+    };
+    interaction: {
+      scrollMode: "fullpage" | "chapter";
+      motionLevel: "minimal";
+      transitions: ("fade" | "slide")[];
+    };
+    sections: {
+      cover: {
+        layout: "centered";
+        elements: ("date" | "brandName" | "documentTitle" | "tagline")[];
+      };
+      logo: {
+        layout: "two-column";
+        variants: ("horizontal" | "vertical")[];
+        themes: ("light" | "dark" | "dual")[];
+      };
+      symbolWordmark: {
+        layout: "two-column";
+        opacitySteps?: number[];
+      };
+      spacingSize: {
+        layout: "diagram";
+        format: "svg" | "image";
+      };
+      colorPalette: {
+        layout: "grid";
+        cardFields: ("name" | "hex" | "cmyk" | "pantone" | "usage")[];
+        ratioExamples: ("light" | "dark")[];
+      };
+      typography: {
+        layout: "stack";
+        previewCopy: string[];
+      };
+    };
+    webTemplate: {
+      routes: string[];
+      interactionNotes: string[];
+    };
   };
 
   sections: {
@@ -626,11 +668,11 @@ interface BrandGuidelineDocument {
       values: { name: string; description: string }[];
       personality: string;
     };
-    logoUsage: GuidelineModel['logo'];
-    colorSystem: GuidelineModel['color'];
-    typography: GuidelineModel['typography'];
-    toneOfVoice: GuidelineModel['tone'];
-    visualElements: GuidelineModel['visual'];
+    logoUsage: GuidelineModel["logo"];
+    colorSystem: GuidelineModel["color"];
+    typography: GuidelineModel["typography"];
+    toneOfVoice: GuidelineModel["tone"];
+    visualElements: GuidelineModel["visual"];
     applications?: {
       digital: ApplicationExample[];
       print: ApplicationExample[];
@@ -685,7 +727,7 @@ const VISION_AGENT_PROMPT = {
   "style": "minimal | complex | geometric | organic | abstract",
   "mood": ["무드 키워드 1", "무드 키워드 2"],
   "symbolism": "로고가 담고 있는 상징적 의미"
-}`
+}`,
 };
 ```
 
@@ -724,7 +766,7 @@ const IDENTITY_AGENT_PROMPT = {
 4. 타겟 오디언스: 상세 프로파일
 5. 보이스 기초: 톤 키워드 (3-5개), 포멀리티 수준
 
-JSON 형식으로 응답해주세요.`
+JSON 형식으로 응답해주세요.`,
 };
 ```
 
@@ -761,7 +803,7 @@ const COLOR_AGENT_PROMPT = {
 6. 컬러 조합 (3개)
 7. 사용 규칙
 
-JSON 형식으로 응답해주세요.`
+JSON 형식으로 응답해주세요.`,
 };
 ```
 
@@ -797,7 +839,7 @@ const TYPOGRAPHY_AGENT_PROMPT = {
 5. 타입 계층 (H1, H2, H3, Body, Caption)
 6. 사용 규칙
 
-JSON 형식으로 응답해주세요.`
+JSON 형식으로 응답해주세요.`,
 };
 ```
 
@@ -834,7 +876,7 @@ const TONE_AGENT_PROMPT = {
 5. 선호/지양 어휘
 6. Do's and Don'ts
 
-JSON 형식으로 응답해주세요.`
+JSON 형식으로 응답해주세요.`,
 };
 ```
 
@@ -867,7 +909,7 @@ const COPYWRITING_AGENT_PROMPT = {
 4. 브랜드 보일러플레이트 (짧은/중간/긴 버전)
 5. CTA 예시 (5개)
 
-JSON 형식으로 응답해주세요.`
+JSON 형식으로 응답해주세요.`,
 };
 ```
 
@@ -875,15 +917,15 @@ JSON 형식으로 응답해주세요.`
 
 ## 문서 섹션 매핑
 
-| 최종 문서 섹션 | 데이터 소스 |
-|---------------|------------|
-| 표지 | `brand.name`, `brand.tagline` |
-| 브랜드 스토리 | `philosophy.mission`, `philosophy.vision` |
-| 핵심 가치 | `philosophy.values` |
-| 브랜드 성격 | `personality` |
-| 로고 사용 규칙 | `GuidelineModel.logo` |
-| 컬러 시스템 | `GuidelineModel.color` |
-| 타이포그래피 | `GuidelineModel.typography` |
-| 톤 오브 보이스 | `GuidelineModel.tone` |
-| 비주얼 요소 | `GuidelineModel.visual` |
-| 카피라이팅 예시 | `CopywritingContent` |
+| 최종 문서 섹션  | 데이터 소스                               |
+| --------------- | ----------------------------------------- |
+| 표지            | `brand.name`, `brand.tagline`             |
+| 브랜드 스토리   | `philosophy.mission`, `philosophy.vision` |
+| 핵심 가치       | `philosophy.values`                       |
+| 브랜드 성격     | `personality`                             |
+| 로고 사용 규칙  | `GuidelineModel.logo`                     |
+| 컬러 시스템     | `GuidelineModel.color`                    |
+| 타이포그래피    | `GuidelineModel.typography`               |
+| 톤 오브 보이스  | `GuidelineModel.tone`                     |
+| 비주얼 요소     | `GuidelineModel.visual`                   |
+| 카피라이팅 예시 | `CopywritingContent`                      |
