@@ -82,6 +82,10 @@ function BrandGuideClientInner() {
 
 	const [overrides, setOverrides] = useState<Overrides>({});
 	const theme = useMemo(() => buildTheme(data, overrides), [data, overrides]);
+	const brandFont =
+		overrides.fontFamily ??
+		typography.scale.display.large.fontFamily ??
+		"ui-sans-serif";
 
 	const themeVars: CSSProperties = {
 		"--bg-primary": "#ffffff",
@@ -95,8 +99,7 @@ function BrandGuideClientInner() {
 		"--brand-primary": theme.brand.primary,
 		"--brand-secondary": theme.brand.secondary,
 		"--brand-accent": theme.brand.accent,
-		"--brand-font":
-			overrides.fontFamily ?? typography.scale.display.large.fontFamily,
+		"--brand-font": `${brandFont}, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif`,
 	} as CSSProperties;
 
 	const pageBackground = `
