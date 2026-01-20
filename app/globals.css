@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "@openai/apps-sdk-ui/css";
-@source "../node_modules/@openai/apps-sdk-ui";
+@source "@openai/apps-sdk-ui";
 
 :root {
 	--font-sans: var(--font-space-grotesk);
