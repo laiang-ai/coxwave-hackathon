@@ -8,9 +8,10 @@
 
 1. [최종 산출물 구조](#최종-산출물-구조)
 2. [워크플로우](#워크플로우)
-3. [Input 스키마](#input-스키마)
-4. [중간 데이터 모델](#중간-데이터-모델)
-5. [에이전트별 프롬프트 템플릿](#에이전트별-프롬프트-템플릿)
+3. [검수 기준](#검수-기준)
+4. [Input 스키마](#input-스키마)
+5. [중간 데이터 모델](#중간-데이터-모델)
+6. [에이전트별 프롬프트 템플릿](#에이전트별-프롬프트-템플릿)
 
 ---
 
@@ -36,7 +37,6 @@
 │     └─ 날짜, 브랜드명, 문서 타이틀                                  │
 │                                                                     │
 │  2. BRAND OVERVIEW                                                  │
-│     ├─ Brand Story (브랜드 스토리)                                  │
 │     ├─ Mission & Vision (미션 & 비전)                               │
 │     ├─ Core Values (핵심 가치)                                      │
 │     └─ Brand Personality (브랜드 성격)                              │
@@ -77,6 +77,8 @@ PHASE 1: 입력 수집 ──▶ PHASE 2: 분석 ──▶ PHASE 3: Identity Mod
 PHASE 7: 시각화 ◀── PHASE 6: 통합 ◀── PHASE 5: 카피 ◀── PHASE 4: Guideline Model
 ```
 
+> 피드백 루프: 입력 변경은 PHASE 1, 가이드라인/카피 수정은 PHASE 4-6으로 되돌린다.
+
 ### 상세 워크플로우
 
 ```
@@ -89,7 +91,7 @@ PHASE 1: 입력 수집 (Input Collection)
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  사용자 입력                                                               │
 │  ─────────────────────────────────────────────────────────────────────────│
-│  • 로고 이미지 (선택)                                                      │
+│  • 로고 이미지 (필수)                                                     │
 │  • 브랜드명                                                                │
 │  • 한줄 정의 (브랜드를 한 문장으로 설명)                                   │
 │  • 산업/카테고리                                                           │
@@ -148,6 +150,7 @@ PHASE 4: Guideline Model 생성 (5개 에이전트 병렬)
 │    LogoGuideline   ColorSystem    Typography      ToneOfVoice   VisualElem │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
+
                                       │
                                       ▼
 PHASE 5: 콘텐츠 작성 (Content Generation)
@@ -240,6 +243,13 @@ Guideline     Guidelines      Guideline
        웹 뷰어    PDF      JSON
 ```
 
+## 검수 기준
+
+- 모든 섹션이 모델에 매핑되고, 비어 있는 섹션은 "해당 없음"으로 명시
+- 톤/컬러/타이포/카피가 IdentityModel 성격 및 톤 키워드와 일관
+- 로고 섹션이 필수 항목으로 포함됨
+- 내보내기 결과에 템플릿 누락/빈칸 없음
+
 ---
 
 ## Input 스키마
@@ -252,9 +262,9 @@ interface UserInput {
   brandName: string; // 브랜드명 (1-50자)
   industry: string; // 산업/카테고리
   oneLiner: string; // 한줄 정의 (10-200자)
+  logo: File; // 로고 이미지 (PNG, JPG, SVG / 최대 5MB)
 
   // 선택 입력 (권장)
-  logo?: File | null; // 로고 이미지 (PNG, JPG, SVG / 최대 5MB)
   keywords?: string[]; // 핵심 키워드 (3-5개)
   targetAudience?: string; // 타겟 오디언스 설명
   toneReference?: ToneOption[]; // 톤 레퍼런스 선택
@@ -382,7 +392,7 @@ interface IdentityModel {
   };
 
   // 로고 분석 결과
-  logoAnalysis?: {
+  logoAnalysis: {
     visualElements: string[];
     colors: string[];
     style: string;
@@ -543,6 +553,12 @@ interface TypographySpec {
 }
 ```
 
+### 톤 일관성 규칙
+
+- `IdentityModel.voiceFoundation.toneKeywords`를 `GuidelineModel.tone.principles`로 확장한다.
+- `voiceFoundation.formalityLevel`과 `energyLevel`은 `tone.writingStyle.characteristics`에 반영한다.
+- `UserInput.prohibitedExpressions`는 `tone.vocabulary.avoided`에 포함한다.
+
 ### 3. CopywritingContent (카피라이팅)
 
 ```typescript
@@ -608,7 +624,7 @@ interface BrandGuidelineDocument {
     brandName: string;
     documentTitle?: string;
     tagline: string;
-    logoUrl?: string;
+    logoUrl: string;
     date: string;
   };
 
@@ -662,7 +678,6 @@ interface BrandGuidelineDocument {
 
   sections: {
     brandOverview: {
-      story: string;
       mission: string;
       vision: string;
       values: { name: string; description: string }[];
@@ -756,7 +771,7 @@ const IDENTITY_AGENT_PROMPT = {
 타겟 오디언스: {{targetAudience}}
 톤 레퍼런스: {{toneReference}}
 
-## 로고 분석 결과 (있는 경우)
+## 로고 분석 결과
 {{logoAnalysis}}
 
 ## 생성해야 할 항목
@@ -788,7 +803,7 @@ const COLOR_AGENT_PROMPT = {
 ## 브랜드 아이덴티티
 {{identityModel}}
 
-## 로고에서 추출된 색상 (있는 경우)
+## 로고에서 추출된 색상
 {{logoAnalysis.colors}}
 
 ## 선호 색상 무드 (있는 경우)
@@ -864,6 +879,8 @@ const TONE_AGENT_PROMPT = {
 - 성격: {{identityModel.personality.traits}}
 - 타겟: {{identityModel.targetAudience.primary.description}}
 - 톤 키워드: {{identityModel.voiceFoundation.toneKeywords}}
+- 포멀리티: {{identityModel.voiceFoundation.formalityLevel}}
+- 에너지 레벨: {{identityModel.voiceFoundation.energyLevel}}
 
 ## 사용자가 지정한 금지 표현 (있는 경우)
 {{prohibitedExpressions}}
