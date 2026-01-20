@@ -98,6 +98,8 @@ export function ChatSidebar() {
       let fullContent = "";
 
       // Stream the response
+      const updates: Array<{ path: string; value: any; reason?: string }> = [];
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -109,27 +111,27 @@ export function ChatSidebar() {
           if (line.startsWith("data: ")) {
             try {
               const json = JSON.parse(line.slice(6));
+
+              // Stream text content
               if (json.content) {
                 fullContent += json.content;
                 editor.appendStreamContent(json.content);
+              }
+
+              // Handle updates array from server
+              if (json.updates && Array.isArray(json.updates)) {
+                for (const update of json.updates) {
+                  if (update.path && update.value !== undefined) {
+                    updates.push(update);
+                    editor.applyUpdate(update.path, update.value);
+                  }
+                }
               }
             } catch (e) {
               // Ignore parse errors
             }
           }
         }
-      }
-
-      // Parse AI response for property updates
-      const pathMatch = fullContent.match(/path[:\s]+([^\s,]+)/i);
-      const valueMatch = fullContent.match(/value[:\s]+([^\s,]+)/i);
-
-      const updates: Array<{ path: string; value: any }> = [];
-      if (pathMatch && valueMatch) {
-        const path = pathMatch[1];
-        const value = valueMatch[1];
-        updates.push({ path, value });
-        editor.applyUpdate(path, value);
       }
 
       // Add assistant message
