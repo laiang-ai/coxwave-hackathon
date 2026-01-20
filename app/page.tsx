@@ -17,6 +17,7 @@ import { Image } from "@openai/apps-sdk-ui/components/Image";
 import { LoadingDots } from "@openai/apps-sdk-ui/components/Indicator";
 import { Textarea } from "@openai/apps-sdk-ui/components/Textarea";
 import { useRouter } from "next/navigation";
+import { MarkdownRenderer } from "./components/MarkdownRenderer";
 import type { ChangeEvent, KeyboardEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -535,9 +536,16 @@ export default function Home() {
 													{isUser ? "You" : "Assistant"}
 												</div>
 												{message.content ? (
-													<p className="whitespace-pre-wrap leading-6">
-														{message.content}
-													</p>
+													isUser ? (
+														<p className="whitespace-pre-wrap leading-6">
+															{message.content}
+														</p>
+													) : (
+														<MarkdownRenderer
+															content={message.content}
+															isInverse={false}
+														/>
+													)
 												) : null}
 												{message.pending ? (
 													<LoadingDots
