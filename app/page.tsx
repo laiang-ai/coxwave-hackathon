@@ -81,6 +81,7 @@ export default function Home() {
 	const [isStreaming, setIsStreaming] = useState(false);
 	const [isComposing, setIsComposing] = useState(false);
 	const [isGenerating, setIsGenerating] = useState(false);
+	const [isSampleQuery, setIsSampleQuery] = useState(false);
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -185,6 +186,33 @@ export default function Home() {
 
 	const sendMessage = async () => {
 		if (!canSend) return;
+
+		// Handle sample query - skip API and redirect directly
+		if (isSampleQuery) {
+			setIsSampleQuery(false);
+			const currentAttachments = attachments;
+			setInput("");
+			setAttachments([]);
+			setIsStreaming(true);
+
+			try {
+				const response = await fetch("/samples/protopie-output.json");
+				const data = await response.json();
+				localStorage.setItem("generatedBrandType", JSON.stringify(data));
+				// Save user uploaded images for use in /brand page
+				if (currentAttachments.length > 0) {
+					localStorage.setItem(
+						"brandLogoImages",
+						JSON.stringify(currentAttachments),
+					);
+				}
+				router.push("/brand");
+			} catch (error) {
+				console.error("Failed to load sample data:", error);
+				setIsStreaming(false);
+			}
+			return;
+		}
 
 		const userMessage: ChatMessage = {
 			id: crypto.randomUUID(),
@@ -367,6 +395,43 @@ export default function Home() {
 		}
 	};
 
+	const handleSampleQuery = async () => {
+		try {
+			// Fetch the ProtoPie logo from public folder
+			const response = await fetch("/samples/protopie-logo.png");
+			const blob = await response.blob();
+			const dataUrl = await new Promise<string>((resolve, reject) => {
+				const reader = new FileReader();
+				reader.onload = () => resolve(String(reader.result));
+				reader.onerror = () => reject(reader.error);
+				reader.readAsDataURL(blob);
+			});
+
+			// Add logo as attachment
+			const logoAttachment: ImageAttachment = {
+				id: crypto.randomUUID(),
+				name: "protopie-logo.png",
+				dataUrl,
+			};
+			setAttachments([logoAttachment]);
+			setIsSampleQuery(true);
+
+			// Set ProtoPie brand identity text
+			setInput(`ProtoPie의 브랜드 정체성을 기반으로 BI에서 Product까지 연결되는 브랜드 방향을 제안해줘.
+
+브랜드 정보:
+- 브랜드명: ProtoPie
+- 설명: 코드 없이 고급 인터랙티브 프로토타입을 만들 수 있는 디자인 도구
+- 핵심 가치: 간편함(Simplicity), 강력함(Power), 협업(Collaboration)
+- 타겟 사용자: UX/UI 디자이너, 프로덕트 팀
+- 브랜드 톤: 현대적이고 전문적이면서도 친근한 느낌`);
+		} catch (error) {
+			console.error("Failed to load sample query:", error);
+			// Fallback to text only
+			setInput("BI에서 Product까지 연결되는 브랜드 방향을 제안해줘.");
+		}
+	};
+
 	return (
 		<main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-neutral-50 via-white to-neutral-50">
 			{/* Background decorations */}
@@ -450,12 +515,10 @@ export default function Home() {
 							variant="outline"
 							size="md"
 							type="button"
-							onClick={() =>
-								setInput("BI에서 Product까지 연결되는 브랜드 방향을 제안해줘.")
-							}
+							onClick={handleSampleQuery}
 							className="border-neutral-300 text-neutral-700 hover:bg-neutral-100"
 						>
-							샘플 쿼리로 시작
+							샘플예제로 시작
 							<ArrowRight className="size-4" />
 						</Button>
 					</div>
@@ -486,7 +549,7 @@ export default function Home() {
 					<div className="border-b border-neutral-100 bg-gradient-to-r from-neutral-50/80 to-white/80 px-6 py-4">
 						<div className="flex flex-wrap items-center justify-between gap-3">
 							<div className="flex items-center gap-3">
-								<div className="flex size-8 items-center justify-center rounded-lg bg-neutral-900">
+								<div className="flex size-8 items-center justify-center rounded-lg bg-gray-900">
 									<Chat className="size-4 text-white" />
 								</div>
 								<div>
@@ -553,32 +616,6 @@ export default function Home() {
 											AI가 브랜드 정체성을 분석하고 가이드라인을 제안합니다.
 										</p>
 									</div>
-									<div className="flex flex-wrap justify-center gap-3">
-										<Button
-											color="secondary"
-											size="sm"
-											onClick={() => fileInputRef.current?.click()}
-											type="button"
-											className="bg-neutral-900 text-white hover:bg-black"
-										>
-											<Paperclip className="size-4" />
-											로고 업로드
-										</Button>
-										<Button
-											color="secondary"
-											variant="outline"
-											size="sm"
-											type="button"
-											onClick={() =>
-												setInput(
-													"우리 브랜드 BI를 제품 UX로 확장하는 방향을 제안해줘.",
-												)
-											}
-											className="border-neutral-300 hover:bg-neutral-100"
-										>
-											예시 쿼리 사용
-										</Button>
-									</div>
 								</div>
 							) : (
 								messages.map((message) => {
@@ -606,9 +643,7 @@ export default function Home() {
 														: "border border-default bg-surface text-default"
 												}`}
 											>
-												<div
-													className="text-[11px] uppercase tracking-[0.2em] text-secondary"
-												>
+												<div className="text-[11px] uppercase tracking-[0.2em] text-secondary">
 													{isUser ? "You" : "Assistant"}
 												</div>
 												{message.content ? (

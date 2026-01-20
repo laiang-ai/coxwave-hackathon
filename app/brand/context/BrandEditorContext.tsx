@@ -41,8 +41,18 @@ export interface AIAssistantState {
 	prompt?: string;
 }
 
+// Logo image from user upload
+export interface LogoImage {
+	id: string;
+	name: string;
+	dataUrl: string;
+}
+
 // Complete editor state
 export interface BrandEditorState extends UseBrandDataReturn {
+	// User uploaded logo images
+	logoImages: LogoImage[];
+
 	// Inspector
 	inspector: InspectorState;
 	openInspector: (path: string) => void;
@@ -96,11 +106,13 @@ const defaultCustomization: SectionCustomization = {
 export interface BrandEditorProviderProps {
 	children: ReactNode;
 	initialData: BrandType;
+	logoImages?: LogoImage[];
 }
 
 export function BrandEditorProvider({
 	children,
 	initialData,
+	logoImages = [],
 }: BrandEditorProviderProps) {
 	// Brand data management
 	const brandData = useBrandData(initialData);
@@ -288,6 +300,7 @@ export function BrandEditorProvider({
 
 	const value: BrandEditorState = {
 		...brandData,
+		logoImages,
 		inspector,
 		openInspector,
 		closeInspector,
