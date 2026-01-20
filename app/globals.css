@@ -6,3 +6,30 @@
 	--font-sans: var(--font-space-grotesk);
 	--font-mono: var(--font-plex-mono);
 }
+
+@keyframes fade-up {
+	0% {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.motion-fade-up {
+	animation: fade-up 0.9s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.motion-fade-up {
+		animation: none;
+	}
+}
+
+@media print {
+	.no-print {
+		display: none !important;
+	}
+}

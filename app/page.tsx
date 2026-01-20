@@ -3,7 +3,6 @@
 import { Avatar } from "@openai/apps-sdk-ui/components/Avatar";
 import { Badge } from "@openai/apps-sdk-ui/components/Badge";
 import { Button } from "@openai/apps-sdk-ui/components/Button";
-import { EmptyMessage } from "@openai/apps-sdk-ui/components/EmptyMessage";
 import {
 	ArrowUp,
 	Chat,
@@ -14,7 +13,6 @@ import {
 } from "@openai/apps-sdk-ui/components/Icon";
 import { Image } from "@openai/apps-sdk-ui/components/Image";
 import { LoadingDots } from "@openai/apps-sdk-ui/components/Indicator";
-import { ShimmerableText } from "@openai/apps-sdk-ui/components/ShimmerText";
 import { Textarea } from "@openai/apps-sdk-ui/components/Textarea";
 import type { ChangeEvent, KeyboardEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -202,70 +200,102 @@ export default function Home() {
 	};
 
 	return (
-		<main className="min-h-screen px-4 py-8 sm:px-6 lg:px-10">
-			<div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-				<header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-					<div className="flex items-center gap-4">
-						<div className="flex size-12 items-center justify-center rounded-2xl border border-default bg-surface-elevated">
-							<OpenaiLogoRegular className="size-6" />
+		<main className="relative min-h-screen overflow-hidden px-4 py-10 sm:px-6 lg:px-10">
+			<div className="pointer-events-none absolute inset-0">
+				<div className="absolute -right-32 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(14,116,144,0.35),_transparent_65%)] blur-3xl" />
+				<div className="absolute -bottom-40 left-10 h-96 w-96 rounded-full bg-[radial-gradient(circle,_rgba(250,204,21,0.25),_transparent_70%)] blur-3xl" />
+				<div className="absolute left-1/2 top-1/3 h-64 w-64 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(37,99,235,0.2),_transparent_70%)] blur-3xl" />
+			</div>
+			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-10">
+				<section className="motion-fade-up flex flex-col gap-6">
+					<div className="flex flex-wrap items-center gap-4">
+						<div className="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-600 via-blue-600 to-amber-400 text-lg font-semibold text-white shadow-lg shadow-blue-500/20">
+							CW
 						</div>
 						<div className="space-y-1">
-							<div className="flex flex-wrap items-center gap-2">
-								<h1 className="heading-lg">Brand Kit</h1>
-								<Badge
-									color={isStreaming ? "info" : "success"}
-									variant="soft"
-									pill
-								>
-									{isStreaming ? "Streaming" : "Ready"}
+							<div className="flex flex-wrap items-center gap-3">
+								<p className="text-xs uppercase tracking-[0.4em] text-secondary">
+									Brand Kit Studio
+								</p>
+								<Badge variant="soft" color="primary">
+									BI → Product
 								</Badge>
 							</div>
-							<ShimmerableText
-								as="p"
-								className="text-sm text-secondary"
-								shimmer={isStreaming}
-							>
-								Brand Kit chat studio with image input and streaming replies.
-							</ShimmerableText>
+							<p className="text-sm text-secondary">
+								로고와 한 줄 설명만 있으면 브랜드 가이드라인부터 제품 방향까지
+								바로 이어집니다.
+							</p>
 						</div>
 					</div>
-					<div className="flex flex-wrap items-center gap-3 rounded-2xl border border-default bg-surface-elevated px-4 py-3 text-sm">
-						<span className="text-xs uppercase tracking-[0.2em] text-secondary">
-							Status
-						</span>
-						<div className="flex items-center gap-2 text-secondary">
-							{isStreaming ? (
-								<>
-									<LoadingDots className="text-secondary" />
-									<span>Streaming reply</span>
-								</>
-							) : (
-								<span>Idle</span>
-							)}
-						</div>
-						<Badge size="sm" variant="outline">
-							gpt-4.1-mini
-						</Badge>
+					<div className="max-w-3xl space-y-4">
+						<h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight text-default sm:text-6xl">
+							BI에서 Product까지,
+							<br />
+							한 번에 시작하세요.
+						</h1>
+						<p className="text-lg text-secondary">
+							로고 업로드 → 한 줄 쿼리 → 바로 인사이트. 브랜드 정체성을
+							제품 경험으로 연결하는 가장 빠른 시작점입니다.
+						</p>
 					</div>
-				</header>
+					<div className="flex flex-wrap gap-3">
+						<Button
+							color="primary"
+							size="sm"
+							type="button"
+							onClick={() => fileInputRef.current?.click()}
+						>
+							<Paperclip className="size-4" />
+							로고 업로드
+						</Button>
+						<Button
+							color="secondary"
+							variant="soft"
+							size="sm"
+							type="button"
+							onClick={() =>
+								setInput("BI에서 Product까지 연결되는 브랜드 방향을 제안해줘.")
+							}
+						>
+							샘플 쿼리 넣기
+						</Button>
+					</div>
+				</section>
 
 				<section className="rounded-3xl border border-default bg-surface-elevated shadow-xl">
 					<div className="flex flex-col gap-6 p-5 sm:p-6">
+						<div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-[0.3em] text-secondary">
+							<span>Brand Chat Studio</span>
+							<div className="flex items-center gap-2 text-xs text-secondary">
+								{isStreaming ? <LoadingDots className="text-secondary" /> : null}
+								<span>{isStreaming ? "Streaming reply" : "Ready"}</span>
+								<Badge size="sm" variant="outline">
+									gpt-4.1-mini
+								</Badge>
+							</div>
+						</div>
+
 						<div
 							ref={scrollRef}
-							className="max-h-[60vh] space-y-4 overflow-y-auto pr-2"
+							className="max-h-[58vh] space-y-4 overflow-y-auto pr-2"
 						>
 							{messages.length === 0 ? (
-								<EmptyMessage>
-									<EmptyMessage.Icon>
-										<Chat className="size-5" />
-									</EmptyMessage.Icon>
-									<EmptyMessage.Title>Start a conversation</EmptyMessage.Title>
-									<EmptyMessage.Description>
-										Attach multiple images or send a text-only prompt. Replies
-										stream in real time as the model responds.
-									</EmptyMessage.Description>
-									<EmptyMessage.ActionRow>
+								<div className="flex flex-col gap-4 rounded-2xl border border-dashed border-subtle bg-surface px-6 py-8 text-sm text-secondary">
+									<div className="flex items-center gap-3 text-default">
+										<div className="flex size-10 items-center justify-center rounded-2xl bg-surface-secondary">
+											<Chat className="size-5" />
+										</div>
+										<div className="space-y-1">
+											<p className="text-base font-semibold text-default">
+												로고와 질문을 올려주세요
+											</p>
+											<p className="text-sm text-secondary">
+												BI의 핵심을 정리하고, 바로 제품 경험으로 이어주는 답을
+												받아보세요.
+											</p>
+										</div>
+									</div>
+									<div className="flex flex-wrap gap-3">
 										<Button
 											color="secondary"
 											variant="soft"
@@ -274,10 +304,21 @@ export default function Home() {
 											type="button"
 										>
 											<Paperclip className="size-4" />
-											Add images
+											로고 첨부
 										</Button>
-									</EmptyMessage.ActionRow>
-								</EmptyMessage>
+										<Button
+											color="secondary"
+											variant="outline"
+											size="sm"
+											type="button"
+											onClick={() =>
+												setInput("우리 브랜드 BI를 제품 UX로 확장하는 방향을 제안해줘.")
+											}
+										>
+											쿼리 예시 보기
+										</Button>
+									</div>
+								</div>
 							) : (
 								messages.map((message) => {
 									const isUser = message.role === "user";
@@ -361,7 +402,7 @@ export default function Home() {
 						<div className="rounded-2xl border border-subtle bg-surface px-4 py-3">
 							<div className="flex flex-wrap items-center justify-between gap-3 text-xs text-secondary">
 								<span>Shift + Enter for a new line</span>
-								<span>{canSend ? "Ready to send" : "Attach or type"}</span>
+								<span>{canSend ? "Ready to send" : "로고 또는 쿼리를 입력"}</span>
 							</div>
 						</div>
 
@@ -404,7 +445,7 @@ export default function Home() {
 											onKeyDown={handleKeyDown}
 											onCompositionStart={() => setIsComposing(true)}
 											onCompositionEnd={() => setIsComposing(false)}
-											placeholder="Ask anything, add an image, press Enter..."
+											placeholder="로고를 업로드하고 브랜드 한 줄 정의를 적어주세요."
 											rows={3}
 											autoResize
 											className="w-full"
@@ -427,7 +468,7 @@ export default function Home() {
 											onClick={() => fileInputRef.current?.click()}
 										>
 											<Paperclip className="size-4" />
-											Add image
+											로고 추가
 										</Button>
 										<Button
 											color="primary"

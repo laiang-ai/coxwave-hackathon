@@ -3,7 +3,7 @@ import { Agent } from "@openai/agents";
 import { visionTools } from "./tools";
 
 export const visionConfig: AgentOptions = {
-	name: "Coxwave Vision",
+	name: "Brand Kit Vision",
 	instructions:
 		"You analyze images and answer visual questions. Describe what you see and connect it to the user's request.",
 	model: "gpt-4.1-mini",

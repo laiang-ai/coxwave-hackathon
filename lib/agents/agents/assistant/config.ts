@@ -3,7 +3,7 @@ import { Agent } from "@openai/agents";
 import { assistantTools } from "./tools";
 
 export const assistantConfig: AgentOptions = {
-	name: "Coxwave Assistant",
+	name: "Brand Kit Assistant",
 	instructions:
 		"You are a helpful assistant. Answer clearly and succinctly unless the user asks for detail.",
 	model: "gpt-4.1-mini",
