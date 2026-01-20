@@ -17,7 +17,7 @@ import { LoadingDots } from "@openai/apps-sdk-ui/components/Indicator";
 import { Textarea } from "@openai/apps-sdk-ui/components/Textarea";
 import { useRouter } from "next/navigation";
 import type { ChangeEvent, KeyboardEvent } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type ImageAttachment = {
 	id: string;
@@ -52,6 +52,8 @@ const readFileAsDataUrl = (file: File) =>
 		reader.readAsDataURL(file);
 	});
 
+const STORAGE_KEY = "chat-messages";
+
 export default function Home() {
 	const router = useRouter();
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -62,6 +64,35 @@ export default function Home() {
 	const [isGenerating, setIsGenerating] = useState(false);
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
+
+	// Load messages from localStorage on mount
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+		try {
+			const stored = localStorage.getItem(STORAGE_KEY);
+			if (stored) {
+				setMessages(JSON.parse(stored));
+			}
+		} catch (error) {
+			console.error("Failed to load messages from localStorage:", error);
+		}
+	}, []);
+
+	// Save messages to localStorage whenever they change
+	const saveMessages = useCallback((msgs: ChatMessage[]) => {
+		if (typeof window === "undefined") return;
+		try {
+			// Filter out pending messages before saving
+			const toSave = msgs.filter((m) => !m.pending);
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+		} catch (error) {
+			console.error("Failed to save messages to localStorage:", error);
+		}
+	}, []);
+
+	useEffect(() => {
+		saveMessages(messages);
+	}, [messages, saveMessages]);
 
 	const canSend = useMemo(
 		() => !isStreaming && (input.trim().length > 0 || attachments.length > 0),

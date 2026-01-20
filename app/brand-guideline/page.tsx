@@ -14,7 +14,7 @@ import { Input } from "@openai/apps-sdk-ui/components/Input";
 import { Textarea } from "@openai/apps-sdk-ui/components/Textarea";
 import { useRouter } from "next/navigation";
 import type { ChangeEvent } from "react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ToneOption, WorkflowEvent } from "@/lib/brand-guideline";
 
 // ============================================
@@ -120,6 +120,52 @@ export default function BrandGuidelinePage() {
 	const [generationState, setGenerationState] = useState<GenerationState>({
 		status: "idle",
 	});
+
+	// ============================================
+	// LocalStorage Persistence
+	// ============================================
+	const FORM_STORAGE_KEY = "brand-guideline-form";
+	const STEP_STORAGE_KEY = "brand-guideline-step";
+
+	// Load from localStorage on mount
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+		try {
+			const storedForm = localStorage.getItem(FORM_STORAGE_KEY);
+			if (storedForm) {
+				setFormData(JSON.parse(storedForm));
+			}
+			const storedStep = localStorage.getItem(STEP_STORAGE_KEY);
+			if (storedStep) {
+				const step = Number.parseInt(storedStep, 10) as FormStep;
+				if (step >= 1 && step <= 4) {
+					setCurrentStep(step);
+				}
+			}
+		} catch (error) {
+			console.error("Failed to load form data from localStorage:", error);
+		}
+	}, []);
+
+	// Save formData to localStorage whenever it changes
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+		try {
+			localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formData));
+		} catch (error) {
+			console.error("Failed to save form data to localStorage:", error);
+		}
+	}, [formData]);
+
+	// Save currentStep to localStorage whenever it changes
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+		try {
+			localStorage.setItem(STEP_STORAGE_KEY, String(currentStep));
+		} catch (error) {
+			console.error("Failed to save step to localStorage:", error);
+		}
+	}, [currentStep]);
 
 	// ============================================
 	// Handlers
