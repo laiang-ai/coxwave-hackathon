@@ -1,7 +1,9 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
+import { AIChat } from "./components/AIChat";
 import { PropertyInspector } from "./components/PropertyInspector";
 import { BrandOverviewSection } from "./components/sections/BrandOverviewSection";
 import { SectionWrapper } from "./components/sections/SectionWrapper";
@@ -30,64 +32,11 @@ const formatDate = (value: string) => {
 	}
 };
 
-// Simple client-side ID generator to avoid any potential SSR issues
-let messageIdCounter = 0;
-const generateMessageId = () => {
-	messageIdCounter += 1;
-	return `msg-${Date.now()}-${messageIdCounter}`;
-};
-
-type ChatMessage = {
-	id: string;
-	role: "user" | "assistant";
-	text: string;
-};
-
 type Overrides = {
 	primary?: string;
 	secondary?: string;
 	accent?: string;
 	fontFamily?: string;
-};
-
-type TargetOption = "primary" | "secondary" | "accent" | "font";
-
-const hexRegex = /^#([0-9a-f]{6})$/i;
-
-const parseCommand = (input: string) => {
-	const trimmed = input.trim();
-	if (!trimmed) return null;
-
-	const colorMatch = trimmed.match(
-		/(primary|secondary|accent)\s*[:=]\s*(#[0-9a-fA-F]{6})/,
-	);
-	if (colorMatch) {
-		return {
-			type: "color",
-			target: colorMatch[1],
-			value: colorMatch[2],
-		} as const;
-	}
-
-	const genericColorMatch = trimmed.match(
-		/(컬러|색상)\s*[:=]?\s*(#[0-9a-fA-F]{6})/,
-	);
-	if (genericColorMatch) {
-		return {
-			type: "color",
-			target: "primary",
-			value: genericColorMatch[2],
-		} as const;
-	}
-
-	const fontMatch =
-		trimmed.match(/font\s*[:=]\s*(.+)$/i) ??
-		trimmed.match(/폰트\s*[:=]\s*(.+)$/i);
-	if (fontMatch) {
-		return { type: "font", value: fontMatch[1].trim() } as const;
-	}
-
-	return { type: "unknown" } as const;
 };
 
 const buildTheme = (data: BrandType, overrides: Overrides): ThemeColors => ({
@@ -110,9 +59,6 @@ function BrandGuideClientInner() {
 
 	// Legacy state for backward compatibility with current UI
 	const [overrides, setOverrides] = useState<Overrides>({});
-	const [chatInput, setChatInput] = useState("");
-	const [messages, setMessages] = useState<ChatMessage[]>([]);
-	const [target, setTarget] = useState<TargetOption>("primary");
 
 	const theme = useMemo(() => buildTheme(data, overrides), [data, overrides]);
 
@@ -149,107 +95,70 @@ function BrandGuideClientInner() {
 		borderColor: "var(--border-default)",
 	};
 
-	const targetOptions: Array<{
-		id: TargetOption;
-		label: string;
-		hint: string;
-	}> = [
-		{ id: "primary", label: "Primary", hint: "#2563EB" },
-		{ id: "secondary", label: "Secondary", hint: "#64748B" },
-		{ id: "accent", label: "Accent", hint: "#F97316" },
-		{ id: "font", label: "Font", hint: "Space Grotesk" },
-	];
-
-	const activeHint = targetOptions.find((option) => option.id === target)?.hint;
-	const chatPlaceholder =
-		target === "font" ? "폰트 이름을 입력하세요" : (activeHint ?? "#2563EB");
-
-	const resolveHex = (value: string) => {
-		const trimmed = value.trim();
-		if (hexRegex.test(trimmed)) return trimmed;
-		if (/^[0-9a-fA-F]{6}$/.test(trimmed)) return `#${trimmed}`;
-		return null;
-	};
-
-	const handleCommand = useCallback(() => {
-		const input = chatInput.trim();
-		if (!input) return;
-
-		const nextMessages: ChatMessage[] = [
-			{ id: generateMessageId(), role: "user", text: input },
-		];
-
-		const command = parseCommand(input);
-		if (command && command.type !== "unknown") {
-			if (command.type === "color") {
-				const hex = resolveHex(command.value);
-				if (!hex) {
-					nextMessages.push({
-						id: generateMessageId(),
-						role: "assistant",
-						text: "HEX는 #RRGGBB 형식으로 입력해줘.",
-					});
-					setMessages((prev) => [...prev, ...nextMessages]);
-					setChatInput("");
-					return;
-				}
-
-				setOverrides((prev) => ({
-					...prev,
-					[command.target]: hex,
-				}));
-
-				nextMessages.push({
-					id: generateMessageId(),
-					role: "assistant",
-					text: `${command.target} 컬러를 ${hex}로 업데이트했어.`,
-				});
-			}
-
-			if (command.type === "font") {
-				setOverrides((prev) => ({ ...prev, fontFamily: command.value }));
-				nextMessages.push({
-					id: generateMessageId(),
-					role: "assistant",
-					text: `타이틀 폰트를 ${command.value}로 변경했어.`,
-				});
-			}
-		} else if (target === "font") {
-			setOverrides((prev) => ({ ...prev, fontFamily: input }));
-			nextMessages.push({
-				id: generateMessageId(),
-				role: "assistant",
-				text: `타이틀 폰트를 ${input}로 변경했어.`,
-			});
-		} else {
-			const hex = resolveHex(input);
-			if (!hex) {
-				nextMessages.push({
-					id: generateMessageId(),
-					role: "assistant",
-					text: "HEX는 #RRGGBB 형식으로 입력해줘.",
-				});
-				setMessages((prev) => [...prev, ...nextMessages]);
-				setChatInput("");
-				return;
-			}
-
-			setOverrides((prev) => ({ ...prev, [target]: hex }));
-			nextMessages.push({
-				id: generateMessageId(),
-				role: "assistant",
-				text: `${target} 컬러를 ${hex}로 업데이트했어.`,
-			});
-		}
-
-		setMessages((prev) => [...prev, ...nextMessages]);
-		setChatInput("");
-	}, [chatInput, target]);
 
 	const handleExport = useCallback(() => {
 		if (typeof window === "undefined") return;
 		window.print();
 	}, []);
+
+	const handleAIChat = useCallback(async (message: string) => {
+		try {
+			const response = await fetch("/api/chat", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					messages: [
+						{
+							role: "user",
+							content: `브랜드 데이터 수정 요청: ${message}\n\n현재 브랜드 데이터:\n${JSON.stringify(data, null, 2)}`,
+						},
+					],
+				}),
+			});
+
+			if (!response.ok) throw new Error("Failed to send message");
+
+			const reader = response.body?.getReader();
+			if (!reader) return;
+
+			const decoder = new TextDecoder();
+			let fullResponse = "";
+
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) break;
+
+				const chunk = decoder.decode(value);
+				const lines = chunk.split("\n").filter((line) => line.trim());
+
+				for (const line of lines) {
+					if (line.startsWith("data: ")) {
+						try {
+							const json = JSON.parse(line.slice(6));
+							if (json.content) {
+								fullResponse += json.content;
+							}
+						} catch (e) {
+							// Ignore parse errors
+						}
+					}
+				}
+			}
+
+			// Parse AI response to extract property updates
+			// Look for patterns like: "path: color.brand.primary.hex, value: #FF5733"
+			const pathMatch = fullResponse.match(/path[:\s]+([^\s,]+)/i);
+			const valueMatch = fullResponse.match(/value[:\s]+([^\s,]+)/i);
+
+			if (pathMatch && valueMatch) {
+				const path = pathMatch[1];
+				const value = valueMatch[1];
+				editor.applyUpdate(path, value);
+			}
+		} catch (error) {
+			console.error("AI chat error:", error);
+		}
+	}, [data, editor]);
 
 	const handleDownloadJson = useCallback(() => {
 		const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -301,6 +210,13 @@ function BrandGuideClientInner() {
 					>
 						Download JSON
 					</button>
+					<Link
+						href="/brand/mockups"
+						className="border px-4 py-2"
+						style={cardStyle}
+					>
+						Mockup Studio
+					</Link>
 					<div
 						className="flex items-center gap-2 border px-4 py-2"
 						style={cardStyle}
@@ -334,9 +250,9 @@ function BrandGuideClientInner() {
 				</div>
 			</header>
 
-			<div className="flex flex-col gap-12">
+			<div className="flex flex-col gap-3">
 				<section className="snap-start">
-					<div className="mx-auto flex min-h-[65vh] max-w-6xl items-center justify-center px-4 py-8">
+					<div className="mx-auto flex min-h-[60vh] max-w-6xl items-center justify-center px-4 py-6">
 						<div
 							className="motion-fade-up w-full max-w-5xl border px-8 py-12 text-center shadow-[0_30px_120px_rgba(15,23,42,0.12)]"
 							style={cardStyle}
@@ -378,9 +294,9 @@ function BrandGuideClientInner() {
 				)}
 
 				<section className="snap-start">
-					<div className="mx-auto flex min-h-[65vh] max-w-6xl items-center px-4 py-10">
+					<div className="mx-auto flex max-w-6xl items-center px-4 py-6">
 						<div
-							className="motion-fade-up grid w-full gap-8 border p-8 shadow-[0_30px_120px_rgba(15,23,42,0.12)] lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)]"
+							className="motion-fade-up grid w-full gap-3 border p-5 shadow-[0_30px_120px_rgba(15,23,42,0.12)] "
 							style={cardStyle}
 						>
 							<div className="space-y-4">
@@ -403,7 +319,7 @@ function BrandGuideClientInner() {
 									<div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
 										<div className="flex flex-col gap-3">
 											<div
-												className="border border-dashed px-6 py-8 text-center"
+												className="border border-dashed px-6 py-6 text-center"
 												style={cardStyle}
 											>
 												<div className="text-xs uppercase tracking-[0.2em] text-[color:var(--fg-muted)]">
@@ -478,9 +394,9 @@ function BrandGuideClientInner() {
 				</section>
 
 				<section className="snap-start">
-					<div className="mx-auto flex min-h-[65vh] max-w-6xl items-center px-4 py-10">
+					<div className="mx-auto flex max-w-6xl items-center px-4 py-6">
 						<div
-							className="motion-fade-up grid w-full gap-8 border p-8 shadow-[0_30px_120px_rgba(15,23,42,0.12)] lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)]"
+							className="motion-fade-up grid w-full gap-3 border p-5 shadow-[0_30px_120px_rgba(15,23,42,0.12)] "
 							style={cardStyle}
 						>
 							<div className="space-y-4">
@@ -618,9 +534,9 @@ function BrandGuideClientInner() {
 				</section>
 
 				<section className="snap-start">
-					<div className="mx-auto flex min-h-[65vh] max-w-6xl items-center px-4 py-10">
+					<div className="mx-auto flex max-w-6xl items-center px-4 py-6">
 						<div
-							className="motion-fade-up grid w-full gap-8 border p-8 shadow-[0_30px_120px_rgba(15,23,42,0.12)] lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)]"
+							className="motion-fade-up grid w-full gap-3 border p-5 shadow-[0_30px_120px_rgba(15,23,42,0.12)] "
 							style={cardStyle}
 						>
 							<div className="space-y-4">
@@ -706,7 +622,7 @@ function BrandGuideClientInner() {
 				<section className="snap-start">
 					<div className="mx-auto flex min-h-[55vh] max-w-6xl items-center px-4 pb-12">
 						<div
-							className="motion-fade-up grid w-full gap-8 border p-8 shadow-[0_30px_120px_rgba(15,23,42,0.12)] lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)]"
+							className="motion-fade-up grid w-full gap-3 border p-5 shadow-[0_30px_120px_rgba(15,23,42,0.12)] "
 							style={cardStyle}
 						>
 							<div className="space-y-4">
@@ -751,88 +667,13 @@ function BrandGuideClientInner() {
 					</div>
 				</section>
 			</div>
-			<div className="no-print fixed bottom-6 left-1/2 z-40 w-[min(92vw,760px)] -translate-x-1/2">
-				<div
-					className="rounded-2xl border p-4 shadow-[0_20px_60px_rgba(15,23,42,0.18)]"
-					style={cardStyle}
-				>
-					<div className="flex flex-wrap items-center gap-2">
-						{targetOptions.map((option) => {
-							const isActive = target === option.id;
-							const activeStyle = {
-								backgroundColor: "var(--brand-primary)",
-								borderColor: "var(--brand-primary)",
-								color: color.darkTheme.foreground.primary,
-							};
 
-							return (
-								<button
-									key={option.id}
-									type="button"
-									className="rounded-full border px-3 py-2 text-[10px] uppercase tracking-[0.2em]"
-									style={isActive ? activeStyle : cardStyle}
-									onClick={() => setTarget(option.id)}
-								>
-									{option.label}
-								</button>
-							);
-						})}
-						<span className="text-[10px] uppercase tracking-[0.2em] text-[color:var(--fg-muted)]">
-							{target === "font" ? "Font" : "Color"}
-						</span>
-					</div>
-					<div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,0.6fr)]">
-						<div className="flex items-center gap-2">
-							<textarea
-								value={chatInput}
-								onChange={(event) => setChatInput(event.target.value)}
-								placeholder={chatPlaceholder}
-								rows={1}
-								className="min-h-[44px] w-full resize-none rounded-2xl border px-4 py-3 text-sm"
-								style={cardStyle}
-								onKeyDown={(event) => {
-									if (event.key === "Enter" && !event.shiftKey) {
-										event.preventDefault();
-										handleCommand();
-									}
-								}}
-							/>
-							<button
-								type="button"
-								className="rounded-full border px-5 py-3 text-xs uppercase tracking-[0.2em]"
-								style={cardStyle}
-								onClick={handleCommand}
-							>
-								Apply
-							</button>
-						</div>
-						<div
-							className="max-h-28 space-y-2 overflow-auto rounded-2xl border p-3 text-xs"
-							style={mutedCardStyle}
-						>
-							{messages.length === 0 ? (
-								<p className="text-[color:var(--fg-muted)]">
-									여기에 변경 요청을 입력하세요.
-								</p>
-							) : (
-								messages.slice(-6).map((msg) => (
-									<p
-										key={msg.id}
-										className={
-											msg.role === "user"
-												? "text-[color:var(--fg-primary)]"
-												: "text-[color:var(--fg-secondary)]"
-										}
-									>
-										{msg.role === "user" ? "> " : ""}
-										{msg.text}
-									</p>
-								))
-							)}
-						</div>
-					</div>
-				</div>
-			</div>
+			{/* AI Chat */}
+			<AIChat
+				cardStyle={cardStyle}
+				mutedCardStyle={mutedCardStyle}
+				onSend={handleAIChat}
+			/>
 
 			{/* Property Inspector */}
 			<PropertyInspector />

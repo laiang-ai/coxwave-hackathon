@@ -200,9 +200,9 @@ export default function LogoSection({
 	return (
 		<>
 			<section className="snap-start">
-				<div className="mx-auto flex min-h-[65vh] max-w-6xl items-center px-4 py-10">
+				<div className="mx-auto flex  max-w-6xl items-center px-4 py-6">
 					<div
-						className="motion-fade-up grid w-full gap-8 border p-8 shadow-[0_30px_120px_rgba(15,23,42,0.12)] lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)]"
+						className="motion-fade-up grid w-full gap-3 border p-5 shadow-[0_30px_120px_rgba(15,23,42,0.12)] lg:grid-cols-2"
 						style={{
 							backgroundColor: theme.light.background.primary,
 							borderColor: theme.light.border.default,
@@ -248,9 +248,9 @@ export default function LogoSection({
 			</section>
 
 			<section className="snap-start">
-				<div className="mx-auto flex min-h-[65vh] max-w-6xl items-center px-4 py-10">
+				<div className="mx-auto flex  max-w-6xl items-center px-4 py-6">
 					<div
-						className="motion-fade-up grid w-full gap-8 border p-8 shadow-[0_30px_120px_rgba(15,23,42,0.12)] lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)]"
+						className="motion-fade-up grid w-full gap-3 border p-5 shadow-[0_30px_120px_rgba(15,23,42,0.12)] lg:grid-cols-2"
 						style={{
 							backgroundColor: theme.light.background.primary,
 							borderColor: theme.light.border.default,

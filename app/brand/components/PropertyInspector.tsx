@@ -56,12 +56,12 @@ export function PropertyInspector() {
 		<>
 			{/* Backdrop */}
 			<div
-				className="no-print fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
+				className="no-print fixed inset-0 z-40 bg-black/20 backdrop-blur-sm transition-all duration-200"
 				onClick={handleCancel}
 			/>
 
 			{/* Side Panel */}
-			<div className="no-print fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col border-l border-[color:var(--border-default)] bg-[color:var(--bg-primary)] shadow-2xl md:w-[400px]">
+			<div className="no-print fixed right-0 top-0 z-50 flex h-full transform transition-transform duration-300 w-full max-w-md flex-col border-l border-[color:var(--border-default)] bg-[color:var(--bg-primary)] shadow-2xl md:w-[400px]">
 				{/* Header */}
 				<div className="flex items-center justify-between border-b border-[color:var(--border-default)] px-6 py-4">
 					<div className="flex-1">
