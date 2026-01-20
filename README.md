@@ -15,6 +15,14 @@ https://github.com/user-attachments/assets/b50bfc62-d783-48ed-ae71-25ed60913b47
 https://github.com/user-attachments/assets/245156b1-6fbe-4660-b3e8-2454330ee40e
 
 
+
+https://github.com/user-attachments/assets/65a23a86-6448-4829-95b0-a2a4ac555308
+
+
+
+https://github.com/user-attachments/assets/566a4f81-d50b-4b3c-95b9-874668f962f1
+
+
   
 <img width="1536" height="1024" alt="ProtoPie-mockup-1" src="https://github.com/user-attachments/assets/9c224cba-e933-41f8-b630-17156837f626" />
 <img width="1536" height="1024" alt="ProtoPie-mockup-2" src="https://github.com/user-attachments/assets/9b9adc50-ce85-49da-9f4c-24b554bc96df" />
