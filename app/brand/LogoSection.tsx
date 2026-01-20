@@ -44,22 +44,26 @@ const LogoTile = ({
 
 	const frameStyle = isDark
 		? {
-			backgroundColor: theme.dark.background.primary,
-			borderColor: theme.dark.border.default,
-			color: theme.dark.foreground.primary,
-		}
+				backgroundColor: theme.dark.background.primary,
+				borderColor: theme.dark.border.default,
+				color: theme.dark.foreground.primary,
+			}
 		: {
-			backgroundColor: theme.light.background.primary,
-			borderColor: theme.light.border.default,
-			color: theme.light.foreground.primary,
-		};
+				backgroundColor: theme.light.background.primary,
+				borderColor: theme.light.border.default,
+				color: theme.light.foreground.primary,
+			};
 
 	const labelStyle = {
-		color: isDark ? theme.dark.foreground.secondary : theme.light.foreground.muted,
+		color: isDark
+			? theme.dark.foreground.secondary
+			: theme.light.foreground.muted,
 	};
 
 	const captionStyle = {
-		color: isDark ? theme.dark.foreground.secondary : theme.light.foreground.muted,
+		color: isDark
+			? theme.dark.foreground.secondary
+			: theme.light.foreground.muted,
 	};
 
 	return (
@@ -221,8 +225,8 @@ export default function LogoSection({
 								className="text-base"
 								style={{ color: theme.light.foreground.secondary }}
 							>
-								Horizontal and vertical treatments are presented in light and dark
-								contexts. Replace any tile by uploading a new asset.
+								Horizontal and vertical treatments are presented in light and
+								dark contexts. Replace any tile by uploading a new asset.
 							</p>
 						</div>
 						<div className="grid gap-4 md:grid-cols-2">
@@ -269,8 +273,8 @@ export default function LogoSection({
 								className="text-base"
 								style={{ color: theme.light.foreground.secondary }}
 							>
-								Symbols are designed to scale from favicon size to large format. Upload
-								updated artwork to validate spacing and contrast.
+								Symbols are designed to scale from favicon size to large format.
+								Upload updated artwork to validate spacing and contrast.
 							</p>
 						</div>
 						<div className="grid gap-4">
@@ -303,30 +307,33 @@ export default function LogoSection({
 									Grayscale Contrast Preview
 								</p>
 								<div className="mt-4 grid gap-3 sm:grid-cols-2">
-									{logo.symbols.textLogoOnBackground.withLightLogo.map((item) => (
-										<div
-											key={`light-${item.grayscale}`}
-											className="flex items-center justify-between border px-4 py-3 text-xs"
-											style={{
-												borderColor: theme.light.border.muted,
-												backgroundColor: `rgb(${item.grayscale}, ${item.grayscale}, ${item.grayscale})`,
-												color:
-													item.grayscale > 60
-														? theme.light.foreground.primary
-														: theme.dark.foreground.primary,
-											}}
-										>
-											<span>Light logo · {item.grayscale}%</span>
-											<span>CR {item.contrastRatio}</span>
-										</div>
-									))}
+									{logo.symbols.textLogoOnBackground.withLightLogo.map(
+										(item) => (
+											<div
+												key={`light-${item.grayscale}`}
+												className="flex items-center justify-between border px-4 py-3 text-xs"
+												style={{
+													borderColor: theme.light.border.muted,
+													backgroundColor: `rgb(${item.grayscale}, ${item.grayscale}, ${item.grayscale})`,
+													color:
+														item.grayscale > 60
+															? theme.light.foreground.primary
+															: theme.dark.foreground.primary,
+												}}
+											>
+												<span>Light logo · {item.grayscale}%</span>
+												<span>CR {item.contrastRatio}</span>
+											</div>
+										),
+									)}
 								</div>
 							</div>
 							<p
 								className="text-xs"
 								style={{ color: theme.light.foreground.muted }}
 							>
-								Uploads are local to this session and do not overwrite stored assets.
+								Uploads are local to this session and do not overwrite stored
+								assets.
 							</p>
 						</div>
 					</div>

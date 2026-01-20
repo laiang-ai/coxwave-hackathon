@@ -2,8 +2,8 @@
 
 import type { CSSProperties } from "react";
 import { useCallback, useMemo, useState } from "react";
-import type { BrandType, ThemeColors } from "./types";
 import LogoSection from "./LogoSection";
+import type { BrandType, ThemeColors } from "./types";
 
 const formatDate = (value: string) => {
 	const date = new Date(value);
@@ -37,17 +37,26 @@ const parseCommand = (input: string) => {
 		/(primary|secondary|accent)\s*[:=]\s*(#[0-9a-fA-F]{6})/,
 	);
 	if (colorMatch) {
-		return { type: "color", target: colorMatch[1], value: colorMatch[2] } as const;
+		return {
+			type: "color",
+			target: colorMatch[1],
+			value: colorMatch[2],
+		} as const;
 	}
 
 	const genericColorMatch = trimmed.match(
 		/(컬러|색상)\s*[:=]?\s*(#[0-9a-fA-F]{6})/,
 	);
 	if (genericColorMatch) {
-		return { type: "color", target: "primary", value: genericColorMatch[2] } as const;
+		return {
+			type: "color",
+			target: "primary",
+			value: genericColorMatch[2],
+		} as const;
 	}
 
-	const fontMatch = trimmed.match(/font\s*[:=]\s*(.+)$/i) ??
+	const fontMatch =
+		trimmed.match(/font\s*[:=]\s*(.+)$/i) ??
 		trimmed.match(/폰트\s*[:=]\s*(.+)$/i);
 	if (fontMatch) {
 		return { type: "font", value: fontMatch[1].trim() } as const;
@@ -93,7 +102,8 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 		"--dark-fg-primary": color.darkTheme.foreground.primary,
 		"--dark-fg-secondary": color.darkTheme.foreground.secondary,
 		"--dark-border-default": color.darkTheme.border.default,
-		"--brand-font": overrides.fontFamily ?? typography.scale.display.large.fontFamily,
+		"--brand-font":
+			overrides.fontFamily ?? typography.scale.display.large.fontFamily,
 	} as CSSProperties;
 
 	const pageBackground = `radial-gradient(circle at 12% 18%, ${color.lightTheme.background.primary} 0%, ${color.lightTheme.background.secondary} 55%), radial-gradient(circle at 85% 8%, ${color.brand.primary.scale["50"]} 0%, transparent 48%), radial-gradient(circle at 50% 100%, ${color.brand.secondary.scale["50"]} 0%, ${color.lightTheme.background.tertiary} 55%)`;
@@ -108,19 +118,20 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 		borderColor: "var(--border-default)",
 	};
 
-	const targetOptions: Array<{ id: TargetOption; label: string; hint: string }> =
-		[
-			{ id: "primary", label: "Primary", hint: "#2563EB" },
-			{ id: "secondary", label: "Secondary", hint: "#64748B" },
-			{ id: "accent", label: "Accent", hint: "#F97316" },
-			{ id: "font", label: "Font", hint: "Space Grotesk" },
-		];
+	const targetOptions: Array<{
+		id: TargetOption;
+		label: string;
+		hint: string;
+	}> = [
+		{ id: "primary", label: "Primary", hint: "#2563EB" },
+		{ id: "secondary", label: "Secondary", hint: "#64748B" },
+		{ id: "accent", label: "Accent", hint: "#F97316" },
+		{ id: "font", label: "Font", hint: "Space Grotesk" },
+	];
 
 	const activeHint = targetOptions.find((option) => option.id === target)?.hint;
 	const chatPlaceholder =
-		target === "font"
-			? "폰트 이름을 입력하세요"
-			: activeHint ?? "#2563EB";
+		target === "font" ? "폰트 이름을 입력하세요" : (activeHint ?? "#2563EB");
 
 	const resolveHex = (value: string) => {
 		const trimmed = value.trim();
@@ -259,21 +270,30 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 					>
 						Download JSON
 					</button>
-					<div className="flex items-center gap-2 border px-4 py-2" style={cardStyle}>
+					<div
+						className="flex items-center gap-2 border px-4 py-2"
+						style={cardStyle}
+					>
 						<span
 							className="h-2 w-2"
 							style={{ backgroundColor: theme.brand.primary }}
 						/>
 						<span>Primary</span>
 					</div>
-					<div className="flex items-center gap-2 border px-4 py-2" style={cardStyle}>
+					<div
+						className="flex items-center gap-2 border px-4 py-2"
+						style={cardStyle}
+					>
 						<span
 							className="h-2 w-2"
 							style={{ backgroundColor: theme.brand.secondary }}
 						/>
 						<span>Secondary</span>
 					</div>
-					<div className="flex items-center gap-2 border px-4 py-2" style={cardStyle}>
+					<div
+						className="flex items-center gap-2 border px-4 py-2"
+						style={cardStyle}
+					>
 						<span
 							className="h-2 w-2"
 							style={{ backgroundColor: theme.brand.accent }}
@@ -318,18 +338,25 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 								<p className="text-xs uppercase tracking-[0.3em] text-[color:var(--fg-muted)]">
 									Spacing + Size
 								</p>
-								<h3 className="text-3xl font-semibold">Clear Space and Minimum Size</h3>
+								<h3 className="text-3xl font-semibold">
+									Clear Space and Minimum Size
+								</h3>
 								<p className="text-sm text-[color:var(--fg-secondary)]">
-									Maintain a clear space of {logo.spacingAndSize.clearSpace.value}
-									{logo.spacingAndSize.clearSpace.unit} around the symbol height. Minimum
-									sizes preserve legibility across print and digital contexts.
+									Maintain a clear space of{" "}
+									{logo.spacingAndSize.clearSpace.value}
+									{logo.spacingAndSize.clearSpace.unit} around the symbol
+									height. Minimum sizes preserve legibility across print and
+									digital contexts.
 								</p>
 							</div>
 							<div className="grid gap-4">
 								<div className="border p-4" style={mutedCardStyle}>
 									<div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
 										<div className="flex flex-col gap-3">
-											<div className="border border-dashed px-6 py-8 text-center" style={cardStyle}>
+											<div
+												className="border border-dashed px-6 py-8 text-center"
+												style={cardStyle}
+											>
 												<div className="text-xs uppercase tracking-[0.2em] text-[color:var(--fg-muted)]">
 													Clear Space Diagram
 												</div>
@@ -411,10 +438,12 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 								<p className="text-xs uppercase tracking-[0.3em] text-[color:var(--fg-muted)]">
 									Color Palette
 								</p>
-								<h3 className="text-3xl font-semibold">Primary, Secondary, Accent</h3>
+								<h3 className="text-3xl font-semibold">
+									Primary, Secondary, Accent
+								</h3>
 								<p className="text-sm text-[color:var(--fg-secondary)]">
-									Each swatch is shown as a display card. Use ratios to balance light
-									and dark themes across layouts.
+									Each swatch is shown as a display card. Use ratios to balance
+									light and dark themes across layouts.
 								</p>
 							</div>
 							<div className="space-y-5">
@@ -429,7 +458,10 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 											className="border p-4"
 											style={cardStyle}
 										>
-											<div className="h-28" style={{ backgroundColor: swatch.hex }} />
+											<div
+												className="h-28"
+												style={{ backgroundColor: swatch.hex }}
+											/>
 											<div className="mt-3 text-sm text-[color:var(--fg-secondary)]">
 												<p className="font-medium text-[color:var(--fg-primary)]">
 													{swatch.name}
@@ -475,16 +507,18 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 												Light Theme Ratio
 											</p>
 											<div className="mt-4 grid gap-2">
-												{Object.values(color.lightTheme.background).map((value) => (
-													<div
-														key={`light-${value}`}
-														className="h-9 border"
-														style={{
-															borderColor: "var(--border-default)",
-															backgroundColor: value,
-														}}
-													/>
-												))}
+												{Object.values(color.lightTheme.background).map(
+													(value) => (
+														<div
+															key={`light-${value}`}
+															className="h-9 border"
+															style={{
+																borderColor: "var(--border-default)",
+																backgroundColor: value,
+															}}
+														/>
+													),
+												)}
 											</div>
 										</div>
 										<div
@@ -498,16 +532,18 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 												Dark Theme Ratio
 											</p>
 											<div className="mt-4 grid gap-2">
-												{Object.values(color.darkTheme.background).map((value) => (
-													<div
-														key={`dark-${value}`}
-														className="h-9 border"
-														style={{
-															borderColor: "var(--dark-border-default)",
-															backgroundColor: value,
-														}}
-													/>
-												))}
+												{Object.values(color.darkTheme.background).map(
+													(value) => (
+														<div
+															key={`dark-${value}`}
+															className="h-9 border"
+															style={{
+																borderColor: "var(--dark-border-default)",
+																backgroundColor: value,
+															}}
+														/>
+													),
+												)}
 											</div>
 										</div>
 									</div>
@@ -529,8 +565,8 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 								</p>
 								<h3 className="text-3xl font-semibold">Live Copy Preview</h3>
 								<p className="text-sm text-[color:var(--fg-secondary)]">
-									A direct rendering of type hierarchy and voice. Use the samples to
-									check rhythm, weight, and density.
+									A direct rendering of type hierarchy and voice. Use the
+									samples to check rhythm, weight, and density.
 								</p>
 							</div>
 							<div className="space-y-5">
@@ -569,8 +605,8 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 											</p>
 										</div>
 										<p className="text-sm text-[color:var(--fg-secondary)]">
-											Body copy: The identity system keeps the experience consistent across
-											channels while letting teams move fast.
+											Body copy: The identity system keeps the experience
+											consistent across channels while letting teams move fast.
 										</p>
 										<p className="text-xs uppercase tracking-[0.2em] text-[color:var(--fg-muted)]">
 											Caption: {brandName} · BI system overview
@@ -613,10 +649,12 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 								<p className="text-xs uppercase tracking-[0.3em] text-[color:var(--fg-muted)]">
 									Template Map
 								</p>
-								<h3 className="text-3xl font-semibold">Web Exhibit Structure</h3>
+								<h3 className="text-3xl font-semibold">
+									Web Exhibit Structure
+								</h3>
 								<p className="text-sm text-[color:var(--fg-secondary)]">
-									Designed for full-page scroll or chapter-based navigation, keeping
-									each section focused on a single rule set.
+									Designed for full-page scroll or chapter-based navigation,
+									keeping each section focused on a single rule set.
 								</p>
 							</div>
 							<div className="border p-5" style={mutedCardStyle}>
@@ -624,17 +662,22 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 									Routes
 								</p>
 								<ul className="mt-4 space-y-2 text-sm text-[color:var(--fg-secondary)]">
-									{["/", "/logo", "/symbol", "/spacing", "/colors", "/typography"].map(
-										(route) => (
-											<li
-												key={route}
-												className="border px-4 py-3"
-												style={cardStyle}
-											>
-												{route}
-											</li>
-										),
-									)}
+									{[
+										"/",
+										"/logo",
+										"/symbol",
+										"/spacing",
+										"/colors",
+										"/typography",
+									].map((route) => (
+										<li
+											key={route}
+											className="border px-4 py-3"
+											style={cardStyle}
+										>
+											{route}
+										</li>
+									))}
 								</ul>
 								<p className="mt-6 text-xs text-[color:var(--fg-muted)]">
 									Motion: fade + slide only. Focus on clarity over interaction.
@@ -699,7 +742,10 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 								Apply
 							</button>
 						</div>
-						<div className="max-h-28 space-y-2 overflow-auto rounded-2xl border p-3 text-xs" style={mutedCardStyle}>
+						<div
+							className="max-h-28 space-y-2 overflow-auto rounded-2xl border p-3 text-xs"
+							style={mutedCardStyle}
+						>
 							{messages.length === 0 ? (
 								<p className="text-[color:var(--fg-muted)]">
 									여기에 변경 요청을 입력하세요.
@@ -723,7 +769,6 @@ export default function BrandGuideClient({ data }: { data: BrandType }) {
 					</div>
 				</div>
 			</div>
-
 		</main>
 	);
 }
